@@ -8,7 +8,7 @@ const features = [
   },
   {
     name: "Abschnittsverwaltung",
-    description: "Fügen Sie Inhalte wie „Über uns", „Produkte" oder „Kontakt" hinzu.",
+    description: "Fügen Sie Inhalte wie \"Über uns\", \"Produkte\" oder \"Kontakt\" hinzu.",
     icon: Layout,
   },
   {
