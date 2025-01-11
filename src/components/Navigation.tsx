@@ -46,12 +46,15 @@ export const Navigation = () => {
           </NavigationMenu>
         </div>
 
-        {/* Auth Buttons */}
+        {/* Auth and Customize Buttons */}
         <div className="hidden md:flex md:items-center md:gap-4">
           <Button variant="ghost" asChild>
             <Link to="/signin">Sign In</Link>
           </Button>
-          <Button asChild>
+          <Button variant="secondary" asChild className="bg-secondary hover:bg-secondary-light">
+            <Link to="/customize">Customize Website</Link>
+          </Button>
+          <Button variant="default" asChild>
             <Link to="/get-started">Get Started</Link>
           </Button>
         </div>
@@ -79,6 +82,9 @@ export const Navigation = () => {
                 <hr className="my-4" />
                 <Button variant="ghost" asChild className="justify-start">
                   <Link to="/signin">Sign In</Link>
+                </Button>
+                <Button variant="secondary" asChild className="justify-start bg-secondary hover:bg-secondary-light">
+                  <Link to="/customize">Customize Website</Link>
                 </Button>
                 <Button asChild className="justify-start">
                   <Link to="/get-started">Get Started</Link>
