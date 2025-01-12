@@ -22,7 +22,7 @@ export const Features = () => {
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:text-center">
+        <div className="mx-auto max-w-2xl lg:text-center scroll-section">
           <h2 className="text-base font-semibold leading-7 text-primary">
             Schneller erstellen
           </h2>
@@ -36,8 +36,13 @@ export const Features = () => {
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-            {features.map((feature) => (
-              <div key={feature.name} className="flex flex-col">
+            {features.map((feature, index) => (
+              <div 
+                key={feature.name} 
+                className={`flex flex-col scroll-section ${
+                  index % 2 === 0 ? "animate-on-scroll-right" : "animate-on-scroll-left"
+                }`}
+              >
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-neutral">
                   <feature.icon
                     className="h-5 w-5 flex-none text-primary"
