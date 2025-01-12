@@ -13,6 +13,7 @@ import SignIn from "./pages/SignIn";
 import GetStarted from "./pages/GetStarted";
 import Customize from "./pages/Customize";
 import ExtraServices from "./pages/ExtraServices";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/customize" element={<Customize />} />
           <Route path="/extra-services" element={<ExtraServices />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

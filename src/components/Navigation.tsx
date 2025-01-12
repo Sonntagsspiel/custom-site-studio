@@ -17,6 +17,7 @@ const navigationItems = [
   { label: "Pricing", href: "/pricing" },
   { label: "Website Templates", href: "/templates" },
   { label: "Extra Services", href: "/extra-services" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const Navigation = () => {
