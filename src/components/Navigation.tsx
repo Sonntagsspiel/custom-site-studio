@@ -15,7 +15,6 @@ import { Link } from "react-router-dom";
 const navigationItems = [
   { label: "About Us", href: "/about" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Website Templates", href: "/templates" },
   { label: "Extra Services", href: "/extra-services" },
   { label: "Contact", href: "/contact" },
 ];
