@@ -1,16 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Palette, Layout, FileCode, Users, Server } from "lucide-react";
+import { Palette, Users, Server, ArrowRight } from "lucide-react";
 
 const sections = [
-  {
-    title: "Website Templates",
-    description: "Wählen Sie aus einer Vielzahl professioneller Templates für Ihre Branche.",
-    icon: Layout,
-    link: "/templates",
-    imagePosition: "right",
-    image: null
-  },
   {
     title: "Customize Your Website",
     description: "Passen Sie Design, Farben und Layout ganz nach Ihren Wünschen an.",
@@ -25,14 +17,6 @@ const sections = [
     icon: Users,
     link: "/about",
     imagePosition: "right",
-    image: null
-  },
-  {
-    title: "Developer Features",
-    description: "Nutzen Sie unsere fortschrittlichen Entwicklertools für maximale Flexibilität.",
-    icon: FileCode,
-    link: "/pricing",
-    imagePosition: "left",
     image: null
   },
   {
