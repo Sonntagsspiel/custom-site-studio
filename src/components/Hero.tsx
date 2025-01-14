@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
-    <div className="relative overflow-hidden bg-neutral-light py-20 sm:py-32">
+    <div className="relative overflow-hidden bg-neutral-light pt-8 sm:pt-12">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -left-4 top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
@@ -12,8 +12,8 @@ export const Hero = () => {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-x-8 lg:gap-y-20">
-          <div className="relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-x-8 lg:gap-y-20 min-h-[calc(100vh-120px)] items-center">
+          <div className="relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6 flex flex-col justify-center">
             <h1 className="text-4xl font-bold tracking-tight text-neutral sm:text-5xl md:text-6xl animate-fade-up">
               Erstellen Sie Ihre perfekte Website
               <span className="text-primary"> – ganz einfach und individuell!</span>
@@ -40,7 +40,7 @@ export const Hero = () => {
               <img
                 src="/lovable-uploads/bd2a8a22-bc54-4a39-9945-cb6262061d2e.png"
                 alt="Website Preview"
-                className="w-full h-auto rounded-2xl shadow-xl transition-all hover:scale-105 duration-300"
+                className="w-full h-auto rounded-2xl shadow-xl transition-all hover:scale-105 duration-300 max-h-[80vh] object-contain"
               />
             </div>
           </div>
