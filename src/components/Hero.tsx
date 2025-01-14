@@ -37,22 +37,11 @@ export const Hero = () => {
           </div>
           <div className="relative mt-10 sm:mt-20 lg:col-span-5 lg:row-span-2 lg:mt-0 xl:col-span-6">
             <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-              <div className="relative w-full transition-all hover:scale-105 duration-300">
-                <div className="aspect-[366/729] relative mx-auto max-w-[366px] overflow-hidden rounded-2xl border border-neutral/10 bg-white shadow-2xl">
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary to-accent opacity-20 blur-lg" />
-                  <div className="absolute inset-0 rounded-2xl bg-neutral-light/80 backdrop-blur-sm" />
-                  <div className="absolute inset-0 rounded-2xl border border-neutral-light/20" />
-                  {/* Add placeholder content */}
-                  <div className="relative h-full p-4">
-                    <div className="h-4 w-24 rounded bg-neutral/10 mb-2" />
-                    <div className="h-32 rounded-lg bg-neutral/5 mb-4" />
-                    <div className="space-y-2">
-                      <div className="h-4 w-full rounded bg-neutral/10" />
-                      <div className="h-4 w-3/4 rounded bg-neutral/10" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <img
+                src="/lovable-uploads/bd2a8a22-bc54-4a39-9945-cb6262061d2e.png"
+                alt="Website Preview"
+                className="w-full h-auto rounded-2xl shadow-xl transition-all hover:scale-105 duration-300"
+              />
             </div>
           </div>
         </div>

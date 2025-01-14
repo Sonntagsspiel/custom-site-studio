@@ -9,6 +9,7 @@ const sections = [
     icon: Layout,
     link: "/templates",
     imagePosition: "right",
+    image: null
   },
   {
     title: "Customize Your Website",
@@ -16,6 +17,7 @@ const sections = [
     icon: Palette,
     link: "/customize",
     imagePosition: "left",
+    image: "/lovable-uploads/415cbbf1-ec65-4367-9731-c74ecf89a3a8.png"
   },
   {
     title: "About Us",
@@ -23,6 +25,7 @@ const sections = [
     icon: Users,
     link: "/about",
     imagePosition: "right",
+    image: null
   },
   {
     title: "Developer Features",
@@ -30,6 +33,7 @@ const sections = [
     icon: FileCode,
     link: "/pricing",
     imagePosition: "left",
+    image: null
   },
   {
     title: "Extra Services",
@@ -37,6 +41,7 @@ const sections = [
     icon: Server,
     link: "/extra-services",
     imagePosition: "right",
+    image: "/lovable-uploads/8f0a0533-ad5a-4c6c-8c3c-56848a6c5128.png"
   },
 ];
 
@@ -71,20 +76,26 @@ export const Sections = () => {
             <div className={`relative overflow-hidden rounded-2xl bg-neutral-light/50 p-8 transition-transform hover:scale-105 duration-300 ${
               section.imagePosition === "right" ? "lg:order-first" : ""
             }`}>
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-accent/10" />
-              <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white shadow-lg">
-                {/* Placeholder content */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="space-y-4 p-6 w-full">
-                    <div className="h-4 w-3/4 rounded bg-neutral/10" />
-                    <div className="h-32 rounded bg-neutral/5" />
-                    <div className="space-y-2">
-                      <div className="h-4 w-full rounded bg-neutral/10" />
-                      <div className="h-4 w-2/3 rounded bg-neutral/10" />
+              {section.image ? (
+                <img
+                  src={section.image}
+                  alt={section.title}
+                  className="w-full h-auto rounded-xl shadow-lg"
+                />
+              ) : (
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white shadow-lg">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="space-y-4 p-6 w-full">
+                      <div className="h-4 w-3/4 rounded bg-neutral/10" />
+                      <div className="h-32 rounded bg-neutral/5" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-full rounded bg-neutral/10" />
+                        <div className="h-4 w-2/3 rounded bg-neutral/10" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         ))}
