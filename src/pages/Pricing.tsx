@@ -14,20 +14,33 @@ const Pricing = () => {
           </p>
         </div>
 
-        {/* Placeholder for pricing cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="border rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-2">Starter</h3>
-            <p className="text-gray-600">Für kleine Unternehmen</p>
-          </div>
-          <div className="border rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-2">Professional</h3>
-            <p className="text-gray-600">Für wachsende Unternehmen</p>
-          </div>
-          <div className="border rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-2">Enterprise</h3>
-            <p className="text-gray-600">Für große Unternehmen</p>
-          </div>
+          <Link to="/pricing/starter" className="block">
+            <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-2">Starter</h3>
+              <p className="text-gray-600 mb-4">Für kleine Unternehmen</p>
+              <p className="text-2xl font-bold mb-4">€29<span className="text-base font-normal">/monat</span></p>
+              <Button className="w-full">Details ansehen</Button>
+            </div>
+          </Link>
+          
+          <Link to="/pricing/professional" className="block">
+            <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-2">Professional</h3>
+              <p className="text-gray-600 mb-4">Für wachsende Unternehmen</p>
+              <p className="text-2xl font-bold mb-4">€99<span className="text-base font-normal">/monat</span></p>
+              <Button className="w-full">Details ansehen</Button>
+            </div>
+          </Link>
+          
+          <Link to="/pricing/enterprise" className="block">
+            <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-2">Enterprise</h3>
+              <p className="text-gray-600 mb-4">Für große Unternehmen</p>
+              <p className="text-2xl font-bold mb-4">€299<span className="text-base font-normal">/monat</span></p>
+              <Button className="w-full">Details ansehen</Button>
+            </div>
+          </Link>
         </div>
 
         <div className="text-center">

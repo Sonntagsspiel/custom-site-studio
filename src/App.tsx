@@ -13,6 +13,9 @@ import GetStarted from "./pages/GetStarted";
 import Customize from "./pages/Customize";
 import ExtraServices from "./pages/ExtraServices";
 import Contact from "./pages/Contact";
+import StarterPricing from "./pages/StarterPricing";
+import ProfessionalPricing from "./pages/ProfessionalPricing";
+import EnterprisePricing from "./pages/EnterprisePricing";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +36,9 @@ const App = () => (
           <Route path="/customize" element={<Customize />} />
           <Route path="/extra-services" element={<ExtraServices />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/pricing/starter" element={<StarterPricing />} />
+          <Route path="/pricing/professional" element={<ProfessionalPricing />} />
+          <Route path="/pricing/enterprise" element={<EnterprisePricing />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
