@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Laptop, Server } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ExtraServices = () => {
   return (
@@ -27,7 +28,9 @@ const ExtraServices = () => {
               <p className="text-gray-600 mb-8">
                 Lassen Sie uns Ihre Website schnell und professionell einrichten. Wir kümmern uns um alles – von der Domain bis zur vollständigen Konfiguration.
               </p>
-              <Button className="w-full">Mehr erfahren</Button>
+              <Button className="w-full" asChild>
+                <Link to="/services/website-setup">Mehr erfahren</Link>
+              </Button>
             </div>
           </div>
 
@@ -43,7 +46,9 @@ const ExtraServices = () => {
               <p className="text-gray-600 mb-8">
                 Sicheres und schnelles Hosting für Ihre Website mit 99,9 % Verfügbarkeit und modernster Technologie.
               </p>
-              <Button className="w-full">Jetzt starten</Button>
+              <Button className="w-full" asChild>
+                <Link to="/services/website-hosting">Jetzt starten</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -55,7 +60,9 @@ const ExtraServices = () => {
           <p className="text-gray-600 mb-6">
             Kontaktieren Sie uns für weitere Details.
           </p>
-          <Button variant="secondary">Kontakt aufnehmen</Button>
+          <Button variant="secondary" asChild>
+            <Link to="/contact">Kontakt aufnehmen</Link>
+          </Button>
         </div>
       </div>
     </div>
