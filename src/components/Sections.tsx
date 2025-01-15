@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Palette, Users, Server, ArrowRight } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { ReviewsCarousel } from "./ReviewsCarousel";
 
 const sections = [
   {
@@ -24,21 +26,50 @@ const sections = [
     description: "Entdecken Sie unsere zusätzlichen Services für Setup und Hosting Ihrer Website.",
     icon: Server,
     link: "/extra-services",
-    imagePosition: "right",
+    imagePosition: "left",
     image: "/lovable-uploads/8f0a0533-ad5a-4c6c-8c3c-56848a6c5128.png"
   },
 ];
 
 export const Sections = () => {
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const element = entry.target as HTMLElement;
+          const position = element.dataset.position;
+          element.classList.add(
+            position === "left" ? "animate-on-scroll-right" : "animate-on-scroll-left"
+          );
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+      rootMargin: "50px",
+    });
+
+    sectionRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {sections.map((section, index) => (
           <div
             key={section.title}
+            ref={(el) => (sectionRefs.current[index] = el)}
+            data-position={section.imagePosition}
             className={`mb-20 flex flex-col items-center gap-x-8 gap-y-16 lg:grid lg:grid-cols-2 ${
-              section.imagePosition === "right" ? "lg:items-center" : "lg:items-center lg:flex-row-reverse"
-            }`}
+              section.imagePosition === "left" ? "lg:items-center" : "lg:items-center lg:flex-row-reverse"
+            } opacity-0`}
           >
             <div className="lg:pl-8 lg:pt-4">
               <div className="lg:max-w-lg">
@@ -57,9 +88,11 @@ export const Sections = () => {
                 </div>
               </div>
             </div>
-            <div className={`relative overflow-hidden rounded-2xl bg-neutral-light/50 p-8 transition-transform hover:scale-105 duration-300 ${
-              section.imagePosition === "right" ? "lg:order-first" : ""
-            }`}>
+            <div 
+              className={`relative overflow-hidden rounded-2xl bg-neutral-light/50 p-8 transition-transform hover:scale-105 duration-300 ${
+                section.imagePosition === "right" ? "lg:order-first" : ""
+              }`}
+            >
               {section.image ? (
                 <img
                   src={section.image}
@@ -83,6 +116,10 @@ export const Sections = () => {
             </div>
           </div>
         ))}
+        
+        <div className="mt-32">
+          <ReviewsCarousel />
+        </div>
       </div>
     </div>
   );
