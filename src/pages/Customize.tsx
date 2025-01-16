@@ -7,20 +7,6 @@ import { WebsiteGoals } from "@/components/customize/WebsiteGoals";
 import { ColorSection } from "@/components/customize/ColorSection";
 import { TypographySection } from "@/components/customize/TypographySection";
 import { WebsiteSectionsManager } from "@/components/customize/WebsiteSectionsManager";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 
 export default function Customize() {
   const { toast } = useToast();
@@ -30,13 +16,6 @@ export default function Customize() {
   const [accentColor, setAccentColor] = useState("#8B5CF6");
   const [selectedFont, setSelectedFont] = useState("inter");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   useEffect(() => {
     const observerCallback: IntersectionObserverCallback = (entries) => {
@@ -58,18 +37,6 @@ export default function Customize() {
 
     return () => observer.disconnect();
   }, []);
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      setSelectedSections((sections) => {
-        const oldIndex = sections.indexOf(active.id);
-        const newIndex = sections.indexOf(over.id);
-        return arrayMove(sections, oldIndex, newIndex);
-      });
-    }
-  };
 
   const handleColorChange = (type: string, value: string) => {
     switch (type) {

@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { 
   LayoutTemplate, 
   Users, 
@@ -46,10 +45,9 @@ interface SectionItem {
 interface SortableSectionProps {
   section: SectionItem;
   onToggle: (id: string) => void;
-  onOrderChange: (id: string, value: number) => void;
 }
 
-const SortableSection = ({ section, onToggle, onOrderChange }: SortableSectionProps) => {
+const SortableSection = ({ section, onToggle }: SortableSectionProps) => {
   const {
     attributes,
     listeners,
@@ -77,17 +75,6 @@ const SortableSection = ({ section, onToggle, onOrderChange }: SortableSectionPr
             onCheckedChange={() => onToggle(section.id)}
           />
         </div>
-        <div className="mt-4">
-          <Label className="text-sm text-gray-500">Position</Label>
-          <Input
-            type="number"
-            min={1}
-            max={100}
-            value={section.order}
-            onChange={(e) => onOrderChange(section.id, parseInt(e.target.value) || 1)}
-            className="mt-2"
-          />
-        </div>
       </Card>
     </div>
   );
@@ -95,20 +82,20 @@ const SortableSection = ({ section, onToggle, onOrderChange }: SortableSectionPr
 
 export const WebsiteSectionsManager = () => {
   const [sections, setSections] = useState<SectionItem[]>([
-    { id: 'hero', name: 'Hero Section', icon: LayoutTemplate, enabled: true, order: 10 },
-    { id: 'about', name: 'About Us', icon: Users, enabled: true, order: 20 },
-    { id: 'reviews', name: 'Reviews', icon: Star, enabled: true, order: 30 },
-    { id: 'photos', name: 'Photo Gallery', icon: Image, enabled: true, order: 40 },
-    { id: 'shop', name: 'Shop', icon: ShoppingBag, enabled: true, order: 50 },
-    { id: 'subscription', name: 'Subscriptions', icon: CreditCard, enabled: true, order: 60 },
-    { id: 'services', name: 'Services', icon: Wrench, enabled: true, order: 70 },
-    { id: 'extra-services', name: 'Extra Services', icon: Wrench, enabled: true, order: 80 },
-    { id: 'contact', name: 'Contact', icon: Phone, enabled: true, order: 90 },
-    { id: 'map', name: 'Map', icon: MapPin, enabled: true, order: 100 },
-    { id: 'signin', name: 'Sign In', icon: UserPlus, enabled: true, order: 110 },
-    { id: 'login', name: 'Log In', icon: LogIn, enabled: true, order: 120 },
-    { id: 'reserve', name: 'Reserve', icon: Calendar, enabled: true, order: 130 },
-    { id: 'motivational', name: 'Motivational', icon: Trophy, enabled: true, order: 140 },
+    { id: 'hero', name: 'Hero Section', icon: LayoutTemplate, enabled: true, order: 1 },
+    { id: 'about', name: 'About Us', icon: Users, enabled: true, order: 2 },
+    { id: 'reviews', name: 'Reviews', icon: Star, enabled: true, order: 3 },
+    { id: 'photos', name: 'Photo Gallery', icon: Image, enabled: true, order: 4 },
+    { id: 'shop', name: 'Shop', icon: ShoppingBag, enabled: true, order: 5 },
+    { id: 'subscription', name: 'Subscriptions', icon: CreditCard, enabled: true, order: 6 },
+    { id: 'services', name: 'Services', icon: Wrench, enabled: true, order: 7 },
+    { id: 'extra-services', name: 'Extra Services', icon: Wrench, enabled: true, order: 8 },
+    { id: 'contact', name: 'Contact', icon: Phone, enabled: true, order: 9 },
+    { id: 'map', name: 'Map', icon: MapPin, enabled: true, order: 10 },
+    { id: 'signin', name: 'Sign In', icon: UserPlus, enabled: true, order: 11 },
+    { id: 'login', name: 'Log In', icon: LogIn, enabled: true, order: 12 },
+    { id: 'reserve', name: 'Reserve', icon: Calendar, enabled: true, order: 13 },
+    { id: 'motivational', name: 'Motivational', icon: Trophy, enabled: true, order: 14 },
   ]);
 
   const sensors = useSensors(
@@ -126,11 +113,10 @@ export const WebsiteSectionsManager = () => {
         const oldIndex = items.findIndex((i) => i.id === active.id);
         const newIndex = items.findIndex((i) => i.id === over.id);
         
-        // Update orders based on new positions
         const newItems = arrayMove(items, oldIndex, newIndex);
         return newItems.map((item, index) => ({
           ...item,
-          order: (index + 1) * 10
+          order: index + 1
         }));
       });
     }
@@ -142,12 +128,6 @@ export const WebsiteSectionsManager = () => {
     ));
   };
 
-  const handleOrderChange = (id: string, value: number) => {
-    setSections(sections.map(section =>
-      section.id === id ? { ...section, order: value } : section
-    ).sort((a, b) => a.order - b.order));
-  };
-
   return (
     <Card className="p-6 space-y-6 animate-fade-up">
       <div className="flex items-center gap-2 mb-4">
@@ -157,8 +137,7 @@ export const WebsiteSectionsManager = () => {
 
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
-          Drag and drop sections to rearrange them, or use the number input to set their exact position.
-          Toggle switches to enable or disable sections.
+          Drag and drop sections to rearrange them. Toggle switches to enable or disable sections.
         </p>
 
         <DndContext
@@ -175,7 +154,6 @@ export const WebsiteSectionsManager = () => {
                 key={section.id}
                 section={section}
                 onToggle={handleToggle}
-                onOrderChange={handleOrderChange}
               />
             ))}
           </SortableContext>
