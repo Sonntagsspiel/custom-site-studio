@@ -5,6 +5,7 @@ import { Laptop, Smartphone, Tablet, RotateCcw, Save } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { WebsiteGoals } from "@/components/customize/WebsiteGoals";
 import { ColorSection } from "@/components/customize/ColorSection";
+import { TypographySection } from "@/components/customize/TypographySection";
 import {
   DndContext,
   closestCenter,
@@ -28,7 +29,6 @@ export default function Customize() {
   const [accentColor, setAccentColor] = useState("#8B5CF6");
   const [selectedFont, setSelectedFont] = useState("inter");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [savedSchemes, setSavedSchemes] = useState<Array<{name: string; colors: any}>>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -38,22 +38,24 @@ export default function Customize() {
   );
 
   useEffect(() => {
-    const loadSavedSchemes = async () => {
-      const { data, error } = await supabase
-        .from('color_schemes')
-        .select('*');
-      
-      if (error) {
-        console.error('Error loading color schemes:', error);
-        return;
-      }
-
-      if (data) {
-        setSavedSchemes(data);
-      }
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-up');
+        }
+      });
     };
 
-    loadSavedSchemes();
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+      rootMargin: "50px",
+    });
+
+    document.querySelectorAll('.scroll-section').forEach((section) => {
+      observer.observe(section);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const handleDragEnd = (event: any) => {
@@ -126,7 +128,7 @@ export default function Customize() {
       <div className="container mx-auto px-4 py-8 grid lg:grid-cols-[1fr_400px] gap-8">
         {/* Left Column - Customization Options */}
         <div className="space-y-8">
-          <div className="space-y-6 animate-fade-up">
+          <div className="space-y-6 scroll-section">
             <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Website anpassen
             </h1>
@@ -135,19 +137,30 @@ export default function Customize() {
             </p>
           </div>
 
-          <WebsiteGoals />
+          <div className="scroll-section">
+            <WebsiteGoals />
+          </div>
           
-          <ColorSection
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-            accentColor={accentColor}
-            onColorChange={handleColorChange}
-            onThemeSelect={(theme) => {
-              setPrimaryColor(theme.primary);
-              setSecondaryColor(theme.secondary);
-              setAccentColor(theme.accent);
-            }}
-          />
+          <div className="scroll-section">
+            <ColorSection
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+              accentColor={accentColor}
+              onColorChange={handleColorChange}
+              onThemeSelect={(theme) => {
+                setPrimaryColor(theme.primary);
+                setSecondaryColor(theme.secondary);
+                setAccentColor(theme.accent);
+              }}
+            />
+          </div>
+
+          <div className="scroll-section">
+            <TypographySection
+              selectedFont={selectedFont}
+              onFontChange={setSelectedFont}
+            />
+          </div>
 
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-lg z-50 animate-fade-up">
             <Button 
