@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Type, AlignLeft, AlignCenter, AlignRight, LineHeight } from "lucide-react";
+import { Type, AlignLeft, AlignCenter, AlignRight, TextQuote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TypographySectionProps {
@@ -59,7 +59,7 @@ export function TypographySection({ selectedFont, onFontChange }: TypographySect
         <div className="space-y-2">
           <Label>Zeilenabstand</Label>
           <div className="flex items-center gap-2">
-            <LineHeight className="w-5 h-5 text-primary" />
+            <TextQuote className="w-5 h-5 text-primary" />
             <Select defaultValue="normal">
               <SelectTrigger>
                 <SelectValue placeholder="Wählen Sie den Zeilenabstand" />
