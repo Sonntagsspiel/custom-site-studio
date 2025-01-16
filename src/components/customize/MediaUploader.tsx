@@ -62,17 +62,18 @@ export const MediaUploader = () => {
         </p>
 
         <div className="flex justify-center">
-          <label className="cursor-pointer">
+          <label className="cursor-pointer w-full">
             <Input
               type="file"
               className="hidden"
               multiple
+              capture="environment"
               accept="image/*,video/*"
               onChange={handleFileUpload}
             />
             <Button variant="outline" className="w-full">
               <Upload className="mr-2 h-4 w-4" />
-              Choose Files
+              Choose from Gallery
             </Button>
           </label>
         </div>
