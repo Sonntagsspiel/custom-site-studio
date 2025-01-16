@@ -7,6 +7,7 @@ import { WebsiteGoals } from "@/components/customize/WebsiteGoals";
 import { ColorSection } from "@/components/customize/ColorSection";
 import { TypographySection } from "@/components/customize/TypographySection";
 import { WebsiteSectionsManager } from "@/components/customize/WebsiteSectionsManager";
+import { MediaUploader } from "@/components/customize/MediaUploader";
 
 export default function Customize() {
   const { toast } = useToast();
@@ -132,6 +133,10 @@ export default function Customize() {
 
           <div className="scroll-section">
             <WebsiteSectionsManager />
+          </div>
+
+          <div className="scroll-section">
+            <MediaUploader />
           </div>
 
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-lg z-50 animate-fade-up">
