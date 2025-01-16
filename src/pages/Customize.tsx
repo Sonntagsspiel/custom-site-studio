@@ -68,32 +68,6 @@ export default function Customize() {
     }
   };
 
-  const handleColorSchemeChange = async (scheme: any, name?: string) => {
-    setPrimaryColor(scheme.primary);
-    setSecondaryColor(scheme.secondary);
-    setAccentColor(scheme.accent);
-
-    if (name) {
-      const { error } = await supabase
-        .from('color_schemes')
-        .insert([{ name, colors: scheme }]);
-
-      if (error) {
-        toast({
-          title: "Fehler beim Speichern",
-          description: "Das Farbschema konnte nicht gespeichert werden.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    toast({
-      title: "Farbschema aktualisiert",
-      description: `Das Farbschema "${name || 'Benutzerdefiniert'}" wurde angewendet.`,
-    });
-  };
-
   const handleColorChange = (type: string, value: string) => {
     switch (type) {
       case "primary":
@@ -168,7 +142,11 @@ export default function Customize() {
             secondaryColor={secondaryColor}
             accentColor={accentColor}
             onColorChange={handleColorChange}
-            onThemeSelect={handleColorSchemeChange}
+            onThemeSelect={(theme) => {
+              setPrimaryColor(theme.primary);
+              setSecondaryColor(theme.secondary);
+              setAccentColor(theme.accent);
+            }}
           />
 
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-lg z-50 animate-fade-up">
