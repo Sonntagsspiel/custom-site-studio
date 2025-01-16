@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { 
   LayoutTemplate, 
   Users, 
@@ -78,13 +78,14 @@ const SortableSection = ({ section, onToggle, onOrderChange }: SortableSectionPr
           />
         </div>
         <div className="mt-4">
-          <Label className="text-sm text-gray-500">Position (1-100)</Label>
-          <Slider
-            defaultValue={[section.order]}
+          <Label className="text-sm text-gray-500">Position</Label>
+          <Input
+            type="number"
+            min={1}
             max={100}
-            step={1}
+            value={section.order}
+            onChange={(e) => onOrderChange(section.id, parseInt(e.target.value) || 1)}
             className="mt-2"
-            onValueChange={(value) => onOrderChange(section.id, value[0])}
           />
         </div>
       </Card>
@@ -124,7 +125,13 @@ export const WebsiteSectionsManager = () => {
       setSections((items) => {
         const oldIndex = items.findIndex((i) => i.id === active.id);
         const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
+        
+        // Update orders based on new positions
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        return newItems.map((item, index) => ({
+          ...item,
+          order: (index + 1) * 10
+        }));
       });
     }
   };
@@ -138,7 +145,7 @@ export const WebsiteSectionsManager = () => {
   const handleOrderChange = (id: string, value: number) => {
     setSections(sections.map(section =>
       section.id === id ? { ...section, order: value } : section
-    ));
+    ).sort((a, b) => a.order - b.order));
   };
 
   return (
@@ -150,7 +157,7 @@ export const WebsiteSectionsManager = () => {
 
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
-          Drag and drop sections to rearrange them, or use the slider to fine-tune their position.
+          Drag and drop sections to rearrange them, or use the number input to set their exact position.
           Toggle switches to enable or disable sections.
         </p>
 
