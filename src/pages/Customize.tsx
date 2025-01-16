@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { WebsiteGoals } from "@/components/customize/WebsiteGoals";
 import { ColorSection } from "@/components/customize/ColorSection";
 import { TypographySection } from "@/components/customize/TypographySection";
+import { WebsiteSectionsManager } from "@/components/customize/WebsiteSectionsManager";
 import {
   DndContext,
   closestCenter,
@@ -160,6 +161,10 @@ export default function Customize() {
               selectedFont={selectedFont}
               onFontChange={setSelectedFont}
             />
+          </div>
+
+          <div className="scroll-section">
+            <WebsiteSectionsManager />
           </div>
 
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-lg z-50 animate-fade-up">
