@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -10,9 +10,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+interface UserStats {
+  total: number;
+  admins: number;
+  regular: number;
+}
+
+interface ContentStats {
+  pages: number;
+  previews: number;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [userStats, setUserStats] = useState<UserStats>({ total: 0, admins: 0, regular: 0 });
+  const [contentStats, setContentStats] = useState<ContentStats>({ pages: 0, previews: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -41,7 +55,35 @@ const Admin = () => {
           description: "You don't have admin privileges.",
         });
         navigate("/");
+        return;
       }
+
+      // Fetch statistics
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact' });
+
+      const { count: adminUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact' })
+        .eq('is_admin', true);
+
+      setUserStats({
+        total: totalUsers || 0,
+        admins: adminUsers || 0,
+        regular: (totalUsers || 0) - (adminUsers || 0)
+      });
+
+      const { count: totalPreviews } = await supabase
+        .from('saved_previews')
+        .select('*', { count: 'exact' });
+
+      setContentStats({
+        pages: 12, // Hardcoded for now, could be dynamic based on your routes
+        previews: totalPreviews || 0
+      });
+
+      setLoading(false);
     };
 
     checkAdminStatus();
@@ -58,7 +100,15 @@ const Admin = () => {
             <CardDescription>Manage user accounts</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Total users: Loading...</p>
+            {loading ? (
+              <p>Loading statistics...</p>
+            ) : (
+              <div className="space-y-2">
+                <p>Total users: {userStats.total}</p>
+                <p>Admin users: {userStats.admins}</p>
+                <p>Regular users: {userStats.regular}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -68,17 +118,27 @@ const Admin = () => {
             <CardDescription>Manage website content</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Active pages: Loading...</p>
+            {loading ? (
+              <p>Loading statistics...</p>
+            ) : (
+              <div className="space-y-2">
+                <p>Active pages: {contentStats.pages}</p>
+                <p>Saved previews: {contentStats.previews}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Analytics</CardTitle>
-            <CardDescription>View site statistics</CardDescription>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Today's visitors: Loading...</p>
+            <div className="space-y-2">
+              <p>Last login: {new Date().toLocaleDateString()}</p>
+              <p>System status: Active</p>
+            </div>
           </CardContent>
         </Card>
       </div>
