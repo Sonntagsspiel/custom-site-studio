@@ -13,8 +13,26 @@ const Register = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const validatePassword = (password: string) => {
+    if (password.length < 6) {
+      return "Password must be at least 6 characters long";
+    }
+    return null;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: passwordError,
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -91,7 +109,11 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
             />
+            <p className="text-sm text-muted-foreground">
+              Password must be at least 6 characters long
+            </p>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Register"}
