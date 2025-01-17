@@ -11,6 +11,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const navigationItems = [
   { label: "About Us", href: "/about" },
@@ -20,6 +22,33 @@ const navigationItems = [
 ];
 
 export const Navigation = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+        
+        setIsAdmin(!!profile?.is_admin);
+      }
+      setIsLoading(false);
+    };
+
+    checkAdminStatus();
+  }, []);
+
+  const allNavigationItems = [
+    ...navigationItems,
+    ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin" }] : []),
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -31,7 +60,7 @@ export const Navigation = () => {
         <div className="hidden md:flex md:flex-1">
           <NavigationMenu>
             <NavigationMenuList>
-              {navigationItems.map((item) => (
+              {allNavigationItems.map((item) => (
                 <NavigationMenuItem key={item.label}>
                   <NavigationMenuLink
                     asChild
@@ -71,7 +100,7 @@ export const Navigation = () => {
             </SheetTrigger>
             <SheetContent side="right">
               <nav className="flex flex-col gap-4">
-                {navigationItems.map((item) => (
+                {allNavigationItems.map((item) => (
                   <Link
                     key={item.label}
                     to={item.href}
