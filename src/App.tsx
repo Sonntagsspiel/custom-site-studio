@@ -19,6 +19,7 @@ import ProfessionalPricing from "./pages/ProfessionalPricing";
 import EnterprisePricing from "./pages/EnterprisePricing";
 import WebsiteSetup from "./pages/WebsiteSetup";
 import WebsiteHosting from "./pages/WebsiteHosting";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/pricing/enterprise" element={<EnterprisePricing />} />
           <Route path="/services/website-setup" element={<WebsiteSetup />} />
           <Route path="/services/website-hosting" element={<WebsiteHosting />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
