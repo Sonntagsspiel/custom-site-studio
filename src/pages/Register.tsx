@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -21,16 +21,33 @@ const Register = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/signin`,
+        },
       });
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error registering",
+          description: error.message,
+        });
+        return;
+      }
 
       toast({
         title: "Registration successful!",
-        description: "Please check your email to verify your account.",
+        description: "Please check your email to verify your account. You will be redirected to the sign in page.",
       });
       
-      navigate("/signin");
+      // Clear the form
+      setEmail("");
+      setPassword("");
+      
+      // Redirect to signin page after a short delay
+      setTimeout(() => {
+        navigate("/signin");
+      }, 2000);
     } catch (error) {
       toast({
         variant: "destructive",
