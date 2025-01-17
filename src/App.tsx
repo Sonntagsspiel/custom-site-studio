@@ -20,6 +20,7 @@ import EnterprisePricing from "./pages/EnterprisePricing";
 import WebsiteSetup from "./pages/WebsiteSetup";
 import WebsiteHosting from "./pages/WebsiteHosting";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/services/website-setup" element={<WebsiteSetup />} />
           <Route path="/services/website-hosting" element={<WebsiteHosting />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
