@@ -9,6 +9,7 @@ import Requirements from "./pages/Requirements";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
 import SignIn from "./pages/SignIn";
+import Register from "./pages/Register";
 import GetStarted from "./pages/GetStarted";
 import Customize from "./pages/Customize";
 import ExtraServices from "./pages/ExtraServices";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/customize" element={<Customize />} />
           <Route path="/extra-services" element={<ExtraServices />} />

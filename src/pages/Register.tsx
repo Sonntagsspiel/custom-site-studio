@@ -6,19 +6,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 
-const SignIn = () => {
+const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -26,15 +26,15 @@ const SignIn = () => {
       if (error) throw error;
 
       toast({
-        title: "Successfully signed in!",
-        description: "Welcome back!",
+        title: "Registration successful!",
+        description: "Please check your email to verify your account.",
       });
       
-      navigate("/customize");
+      navigate("/signin");
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
+        title: "Error registering",
         description: error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
@@ -47,14 +47,14 @@ const SignIn = () => {
       <div className="max-w-md w-full mx-auto p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-2">
-            Welcome back
+            Create an account
           </h1>
           <p className="text-gray-600">
-            Sign in to manage your website
+            Get started with your website builder account
           </p>
         </div>
 
-        <form onSubmit={handleSignIn} className="space-y-4 mb-8">
+        <form onSubmit={handleRegister} className="space-y-4 mb-8">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -77,13 +77,13 @@ const SignIn = () => {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Creating account..." : "Register"}
           </Button>
         </form>
 
         <div className="text-center">
           <Button asChild variant="ghost" className="mx-auto">
-            <Link to="/register">Don't have an account? Register</Link>
+            <Link to="/signin">Already have an account? Sign in</Link>
           </Button>
         </div>
       </div>
@@ -91,4 +91,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default Register;
