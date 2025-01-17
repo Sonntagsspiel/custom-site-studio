@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -23,7 +23,22 @@ const SignIn = () => {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            variant: "destructive",
+            title: "Email not confirmed",
+            description: "Please check your email and confirm your account before signing in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error signing in",
+            description: error.message,
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Successfully signed in!",
