@@ -19,4 +19,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['i18next', 'react-i18next', 'i18next-browser-languagedetector']
+  }
 }));

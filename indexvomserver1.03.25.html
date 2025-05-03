@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fahrer und Routenkarte</title>
+   
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #map {
+            width: 100%;
+            height: 92%;
+            filter: grayscale(30%) brightness(80%); /* Karte vollständig in Grautönen und etwas dunkler */
+        }
+
+
+        #map:fullscreen {
+    filter: grayscale(20%) brightness(90%);
+}
+
+body.gm-fullscreen #map canvas {
+    filter: grayscale(30%) brightness(80%);
+}
+
+
+        #details {
+            margin-top: 20px;
+        }
+
+        #route-details {
+            margin-bottom: 20px;
+        }
+
+        .route-item, .driver-item {
+            margin-bottom: 10px;
+        }
+
+            .route-item input[type="checkbox"], .driver-item input[type="checkbox"] {
+                margin-right: 10px;
+            }
+
+        #add-route, #add-driver {
+            margin-top: 20px;
+        }
+
+            #add-route input, #add-route textarea, #add-driver input, #add-driver select {
+                display: block;
+                margin-bottom: 10px;
+            }
+
+        #upload-form, #driver-upload-form {
+            margin-top: 20px;
+        }
+        .fullscreen-custom {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            width: calc(100vw * var(--scale-factor, 1));
+            height: calc(100vh * var(--scale-factor, 1));
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .fullscreen-body {
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+         /* Abstand zwischen den einzelnen <div>-Containern */
+  .filter-container div {
+    margin-bottom: 15px; /* 15px Abstand zwischen den <div>-Elementen */
+  }
+
+  /* Abstand zwischen den Label-Elementen und den dazugehörigen Inputs */
+  label {
+    display: block;
+    margin-bottom: 5px; /* 5px Abstand zwischen Label und Input */
+  }
+
+  /* Zusätzlicher Abstand zwischen den Buttons */
+  #filter-button,
+  #reset-button {
+    margin-top: 10px; /* 10px Abstand nach oben, z.B. zum vorherigen Container */
+    margin-right: 10px; /* Optional: Abstand zwischen den Buttons */
+  }
+
+  /* Umgebender Container für die Filterbox */
+  .filter-container {
+    margin-bottom: 20px; /* Abstand zwischen der gesamten Filterbox und dem nächsten Element */
+  }
+        
+
+    </style>
+    <script>
+        console.log("JavaScript geladen");
+    </script>
+
+</head>
+<body>
+    
+
+
+    <div id="controls" style="position: absolute; top: var(--filter-top, 1%); left: var(--filter-left, 0.5%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+        <input type="text" id="search-input" placeholder="Adresse eingeben" style="width: 200px;" />
+        <button id="search-place-button">Suchen</button>
+        <button id="reset-search-place-button">Zurücksetzen</button>  </div>
+    
+        <div class="checkbox-container" style="position: absolute; top: var(--filter-top, 1%); left: var(--filter-left, 14%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+            <input type="checkbox" id="toggle-drivers" checked />
+        </div>
+        <div>
+            <label for="toggle-drivers" style="position: absolute; top: var(--filter-top, 1.1%); left: var(--filter-left, 15%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Fahrer anzeigen</label>
+        </div>
+   
+    
+    
+    
+
+    
+    <div 
+    id="map" style="position: absolute; top: var(--filter-top, 3.8%); left: var(--filter-left, 0%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto); filter: grayscale(30%) brightness(80%);"></div>
+    </div>
+
+   
+
+        <!-- Von-Bis Filter für Abholdatum -->
+        <div id="filter-container" style="position: absolute; top: var(--filter-top, -1%); left: var(--filter-left, 21.5%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+            <h2>Abholdatum</h2>
+        </div>
+           
+            
+                <div><label for="filter-pickup-date-start" style="position: absolute; top: var(--filter-top, 1%); left: var(--filter-left, 26%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Von:</label> </div>
+                <div></div><input type="date" id="filter-pickup-date-start" style="position: absolute; top: var(--filter-top, 0.8%); left: var(--filter-left, 27.3%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);"></div>
+            
+            
+                <div> <label for="filter-pickup-date-end" style="position: absolute; top: var(--filter-top, 1%); left: var(--filter-left, 31.7%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Bis:</label></div>
+                <div> <input type="date" id="filter-pickup-date-end" style="position: absolute; top: var(--filter-top, 0.8%); left: var(--filter-left, 32.8%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);"></div>
+            
+                <div><button id="filter-button" style="width: 150px; position: absolute; top: var(--filter-top, 0%); left: var(--filter-left, 37%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Datum anwenden</button></div>
+                
+                    <div><button id="reset-date-button" style="width: 150px; position: absolute; top: var(--filter-top, 0.8%); left: var(--filter-left, 41.7%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Datum zurücksetzen</button></div>
+            
+
+        <!-- Fahrer von CSV-Datei laden -->
+        <div id="driver-upload-form" style="position: absolute; top: var(--filter-top, 94%); left: var(--filter-left, 0.5%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+            <h2>Fahrer:</h2></div>
+            <div class="filter-container" style="position: absolute; top: var(--filter-top, 97%); left: var(--filter-left, 4%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+                <label for="driver-csv"></label>
+                <input type="file" id="driver-form" accept=".csv">
+            </div>
+        
+
+        <!-- Routen von Excel-Datei laden -->
+        <div id="upload-form" style="position: absolute; top: var(--filter-top, 94%); left: var(--filter-left, 15%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+            <h2>Routen: </h2>
+           <form id="upload-form-file" style="position: absolute; top: var(--filter-top, 28%); left: var(--filter-left, 125%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+                <label for="select Route"></label>
+                <input type="file" id="route-form" accept=".xlsx, .csv" title="Wählen Sie eine Excel- oder CSV-Datei aus, um die Routen zu laden">
+                <span id="file-name" class="hidden"></span>
+            </form>
+        </div>
+        
+        
+
+        <!-- Routen aktualisieren -->
+        <div id="Aktualisieren-Button" style="position: absolute; top: var(--filter-top, 1%); left: var(--filter-left, 80%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">
+            <h2 style="display: inline-block; margin-right: 10px; margin-top: -1%;">Routen aktualisieren</h2> </div>
+            <div id="update-container" style="width: 300px; margin-top: 0.45%; margin-right: 1000px; display: flex; gap: 10px; margin-left: 87.8%;">
+                <label for="Routenaktualisierung-csv"></label>
+                <input type="file" id="Routenaktualisierung-form" accept=".csv">
+           
+            
+        </div>
+
+        <!-- Nach Auftragsnummer suchen -->
+        <div id="Auftragsnummer-Filter" style="position: absolute; top: var(--filter-top, -1%); left: var(--filter-left, 49%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);"> 
+            <h2>Nach Auftragsnummer suchen</h2> </div>
+            
+                <div>
+                    <label for="filter-order-number" style="position: absolute; top: var(--filter-top, 1.1%); left: var(--filter-left, 60%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Auftragsnummer:</label></div>
+                    <div> <input type="text" id="filter-order-number" style="position: absolute; top: var(--filter-top, 0.9%); left: var(--filter-left, 63.8%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);" placeholder="Auftragsnummer eingeben">
+                </div>
+                <div>
+                    <button id="search-route-button" style="position: absolute; top: var(--filter-top, 0.95%); left: var(--filter-left, 69.7%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Route suchen</button></div>
+                    <div>  <button id="reset-button" style="position: absolute; top: var(--filter-top, 0.15%); left: var(--filter-left, 72.8%); right: var(--filter-right, auto); bottom: var(--filter-bottom, auto);">Filter zurücksetzen</button>
+                </div>
+           
+
+        <!-- Fahrer filtern -->
+          <div id="driver-filter-form" style="display: none;">
+          <h2>Fahrer filtern</h2>
+            <label for="filter-driver-status">Status:</label>
+            <select id="filter-driver-status">
+            <option value="">Alle</option>
+            <option value="frei">Frei</option>
+            <option value="nicht frei">Nicht frei</option>
+            </select>
+        </div>
+
+
+
+        <div id="details" style="display: none;"></div>
+        <!-- Details der Routen -->
+        <div id="route-details" style="display: none;">
+            <h2>Routen Details</h2>
+            <div id="route-list"></div>
+            <!-- Hier werden die Routen-Daten angezeigt -->
+        </div>
+
+
+
+
+
+
+        
+
+       
+
+
+
+       <!-- Füge Google Maps API hinzu -->
+       <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIqfjgNf2_MQXS0nIQ1I7XC94C-zDzEn8&libraries=places,marker"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIqfjgNf2_MQXS0nIQ1I7XC94C-zDzEn8&libraries=places"></script>
+      
+        <script>
+           document.addEventListener("DOMContentLoaded", () => {
+    const fileInput = document.getElementById("route-form"); // ID des Datei-Inputs
+
+
+    
+    
+
+    
+   
+   
+
+
+                const GOOGLE_API_KEY = 'AIzaSyBIqfjgNf2_MQXS0nIQ1I7XC94C-zDzEn8';
+
+                
+
+// Füge stattdessen Google Maps Karte hinzu
+var map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 51.1657, lng: 10.4515 }, // Zentrum Deutschland
+    zoom: 6
+});
+
+                
+
+
+                const fullscreenBtn = document.getElementById('fullscreen-btn');
+                const mapContainer = document.getElementById('map');
+                const body = document.body;
+                const otherContent = document.getElementById('details');
+                const pageTitle = document.querySelector('h1');
+                let routeQueue = []; // Warteschlange für Routen
+    let isProcessing = false; // Flag, um zu verhindern, dass mehrere Prozesse gleichzeitig laufen
+
+    // Funktion, um eine Route zur Warteschlange hinzuzufügen
+    function enqueueRoute(startAddress, endAddress, routeDetails) {
+        routeQueue.push({ startAddress, endAddress, routeDetails });
+        processQueue(); // Starte die Verarbeitung der Warteschlange
+    }
+
+    // Funktion, um die Warteschlange zu verarbeiten
+    function processQueue() {
+        if (isProcessing || routeQueue.length === 0) return; // Verhindere mehrere parallele Verarbeitungen oder leere Warteschlange
+
+        isProcessing = true;
+
+        // Verarbeite die nächste Route in der Warteschlange mit einem Delay
+        function processNext() {
+            if (routeQueue.length === 0) {
+                isProcessing = false; // Beende die Verarbeitung, wenn die Warteschlange leer ist
+                return;
+            }
+
+            const route = routeQueue.shift(); // Nimm die erste Route aus der Warteschlange
+            addRoute(route.startAddress, route.endAddress, route.routeDetails);
+
+            // Verarbeite die nächste Route nach 100 Millisekunden (10 Routen pro Sekunde)
+            setTimeout(processNext, 1000 / 5); // Passe die Verzögerung an, um nicht die Rate zu überschreiten
+        }
+
+        processNext();
+    }
+
+                function enterFullscreen() {
+                    if (mapContainer.requestFullscreen) {
+                        mapContainer.requestFullscreen();
+                    } else if (mapContainer.mozRequestFullScreen) {
+                        mapContainer.mozRequestFullScreen();
+                    } else if (mapContainer.webkitRequestFullscreen) {
+                        mapContainer.webkitRequestFullscreen();
+                    } else if (mapContainer.msRequestFullscreen) {
+                        mapContainer.msRequestFullscreen();
+                    }
+                    otherContent.classList.add('hidden-elements');
+                    pageTitle.classList.add('hidden-elements');
+                    fullscreenBtn.textContent = 'Vollbild';
+                }
+
+                function toggleFullscreen() {
+                    const isFullscreen = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+
+                    if (isFullscreen) {
+                        exitFullscreen();
+                    } else {
+                        enterFullscreen();
+                    }
+                }
+
+              
+
+                let driverMarkers = []; // Hier globale Definition
+                let drivers = [];
+               
+
+
+
+                var routes = [];
+                var routeLayers = [];
+                var routeColorMap = {}; // Zum Speichern der Farben für jede Route
+
+                const predefinedColors = ['#1E90FF', '#FFD700', '#4B0082', '#00CED1', '#4682B4',
+                    '#DAA520', '#5F9EA0', '#483D8B', '#8B4513', '#20B2AA',
+                    '#6A5ACD', '#7B68EE', '#778899', '#2F4F4F', '#40E0D0',
+                    '#8B0000', '#191970', '#696969', '#808080', '#00008B',
+                    '#FFDAB9', '#1C1C1C', '#2E8B57', '#483D8B', '#A9A9A9',
+                    '#BA55D3', '#8B008B', '#800080', '#9400D3', '#9370DB',
+                    '#A52A2A', '#B8860B', '#D2691E', '#D2B48C', '#CD853F',
+                    '#F4A460', '#DAA520', '#DEB887', '#EEE8AA', '#FA8072',
+                    '#FFA07A', '#F08080', '#FF6347', '#FF7F50', '#FF8C00',
+                    '#FFA500', '#FFD700', '#FFDAB9', '#FFE4B5', '#FFEBCD',
+                    '#FFDEAD', '#FFEFD5', '#FFF5EE', '#FFF8DC', '#FFFACD',
+                    '#FAEBD7', '#F5F5DC', '#F0E68C', '#EEDD82', '#D3D3D3',
+                    '#C0C0C0', '#DCDCDC', '#F5DEB3', '#FFE4E1', '#FFF0F5',
+                    '#E6E6FA', '#B0C4DE', '#ADD8E6', '#87CEEB', '#87CEFA',
+                    '#6495ED', '#4682B4', '#5F9EA0', '#7FFFD4', '#00FFFF',
+                    '#E0FFFF', '#AFEEEE', '#B0E0E6', '#48D1CC', '#40E0D0',
+                    '#00CED1', '#20B2AA', '#5F9EA0', '#4682B4', '#B0C4DE',
+                    '#ADD8E6', '#87CEEB', '#87CEFA', '#1E90FF', '#6495ED',
+                    '#4169E1', '#0000FF', '#0000CD', '#00008B', '#000080',
+                    '#191970', '#7B68EE', '#6A5ACD', '#483D8B', '#663399']; // Farbenliste
+let colorIndex = 0;
+
+function getNextColor() {
+   
+
+    if (!getNextColor.colorIndex) {
+        getNextColor.colorIndex = 0; // Initialisiere den Index, falls nicht vorhanden
+    }
+
+    const color = predefinedColors[getNextColor.colorIndex];
+    getNextColor.colorIndex = (getNextColor.colorIndex + 1) % predefinedColors.length; // Zum nächsten Farbindex wechseln
+
+    return color;
+}
+
+
+
+
+
+
+document.getElementById('toggle-drivers').addEventListener('change', () => {
+    const checkbox = document.getElementById('toggle-drivers');
+    const isVisible = checkbox.checked;
+
+    driverMarkers.forEach(marker => {
+        marker.setMap(isVisible ? map : null); // Zeige/verberge Marker
+    });
+
+    console.log(`Alle Fahrer sind jetzt ${isVisible ? 'sichtbar' : 'versteckt'}.`);
+});
+
+
+
+let loadedRoutes = {}; // Speichert die aktuell geladenen Routen
+var routeLayers = []; // Define routeLayers at the beginning
+
+
+// Event-Listener für den Datei-Input
+document.getElementById('Routenaktualisierung-form').addEventListener('change', function (e) {
+    
+    const file = e.target.files[0]; // Hole die ausgewählte Datei
+    if (!file) {
+       
+        return;
+    }
+
+    const reader = new FileReader(); // Erstelle einen FileReader
+
+    // Wenn die Datei erfolgreich geladen wird
+    reader.onload = function (event) {
+        try {
+            const csvContent = event.target.result;
+            console.log('Datei-Inhalt erfolgreich geladen:', csvContent);
+
+            // Routen aus CSV parsen und aktualisieren
+            const newRoutes = parseCSVToJson(csvContent); // Nutzen Sie die bestehende Funktion
+            updateRoutes(newRoutes); // Nutzen Sie Ihre Update-Funktion
+        } catch (error) {
+            console.error('Fehler beim Verarbeiten der Datei:', error);
+            
+        }
+    };
+
+    // Fehlerbehandlung für den FileReader
+    reader.onerror = function () {
+        console.error('Fehler beim Lesen der Datei:', reader.error);
+        
+    };
+
+    // Datei als Text lesen (UTF-8)
+    reader.readAsText(file, 'UTF-8');
+});
+
+
+
+
+
+
+
+function updateRoutes(newRoutes) {
+    console.log('Starte Vergleich der neuen Routen mit den geladenen Routen.');
+
+    const existingIds = new Set(Object.keys(loadedRoutes));
+    console.log('Bereits geladene Routen-IDs:', Array.from(existingIds));
+
+    const addedRoutes = [];
+    const skippedRoutes = [];
+
+    newRoutes.forEach((route, index) => {
+        console.log(`\n--- Verarbeite Route ${index + 1} ---`);
+        console.log('Route:', route);
+
+        const uniqueIdentifier = route.ID || route.Auftragsnummer;
+        console.log('Eindeutige Kennung (ID/Auftragsnummer):', uniqueIdentifier);
+
+        if (!uniqueIdentifier) {
+            console.warn('Warnung: Route hat keine gültige ID oder Auftragsnummer. Wird übersprungen.');
+            return;
+        }
+
+        if (existingIds.has(uniqueIdentifier)) {
+            console.log(`Route mit ID/Auftragsnummer "${uniqueIdentifier}" existiert bereits. Überspringe.`);
+            skippedRoutes.push(uniqueIdentifier);
+            return;
+        }
+
+        console.log(`Route mit ID/Auftragsnummer "${uniqueIdentifier}" ist neu. Wird hinzugefügt.`);
+
+        const routeDetails = extractRouteDetails(route);
+
+        routeDetails.pickupDate = parseDate(routeDetails.Abholdatum);
+        routeDetails.dropoffDate = parseDate(routeDetails.Rückgabedatum);
+
+
+        addRoute(routeDetails.startAddress, routeDetails.endAddress, routeDetails);
+        console.log(`Route "${uniqueIdentifier}" erfolgreich hinzugefügt.`);
+
+        addedRoutes.push(uniqueIdentifier);
+    });
+
+    console.log('\n--- Zusammenfassung ---');
+    console.log('Neue Routen hinzugefügt:', addedRoutes);
+    console.log('Bereits bestehende Routen übersprungen:', skippedRoutes);
+    console.log('Aktualisierter Zustand von loadedRoutes:', loadedRoutes);
+
+    console.log('Routenaktualisierung abgeschlossen.');
+}
+
+
+
+
+
+
+
+
+
+
+
+function logRouteDetails(routes) {
+    routes.forEach(route => {
+        console.log("ID:", route.ID);
+        console.log("Auftragsnummer:", route.Auftragsnummer);
+        console.log("Start Postleitzahl:", route.Start_Postleitzahl);
+        console.log("Start Ort:", route.Start_Ort);
+        console.log("Start Adresse:", route.Start_Adresse);
+        console.log("Ziel Postleitzahl:", route.Ziel_Postleitzahl);
+        console.log("Ziel Ort:", route.Ziel_Ort);
+        console.log("Ziel Adresse:", route.Ziel_Adresse);
+        console.log("Fahrzeugtyp:", route.Fahrzeugtyp);
+        console.log("Kennzeichen:", route.Kennzeichen);
+        console.log("Fahrer:", route.Fahrer);
+        console.log("Auto:", route.Auto);
+        console.log("Abhol:", route.Abhol);
+        console.log("Abholzeitraum:", route.Abholzeitraum);
+        console.log("Rückgabe:", route.Rückgabe);
+        console.log("Rückgabezeitraum:", route.Rückgabezeitraum);
+        console.log("Abholdatum:", route.Abholdatum);
+        console.log("Rückgabedatum:", route.Rückgabedatum);
+        console.log("------------");
+    });
+}
+
+// Funktion zum Entfernen von Routen
+function removeRoute(routeId) {
+    console.log(`Versuche, Route ${routeId} zu entfernen.`);
+
+    // Debugging: Alle aktuellen IDs in routeLayers prüfen
+    const allRouteIds = routeLayers.map(layer => layer.routeDetails?.id);
+    console.log('Alle gespeicherten IDs in routeLayers:', allRouteIds);
+
+    if (!loadedRoutes[routeId]) {
+        console.warn(`Route ${routeId} ist nicht in loadedRoutes.`);
+    }
+
+    const layerIndex = routeLayers.findIndex(layer => layer.routeDetails?.id === routeId);
+    if (layerIndex === -1) {
+        console.warn(`Route ${routeId} nicht in routeLayers gefunden. Aktueller Zustand:`, routeLayers);
+        return;
+    }
+
+    console.log(`Route ${routeId} in routeLayers gefunden. Index: ${layerIndex}`);
+
+    const layer = routeLayers[layerIndex];
+    if (layer.outerLayer) {
+        console.log(`Entferne äußere Linie für Route ${routeId}.`);
+        layer.outerLayer.setMap(null);
+    }
+    if (layer.innerLayer) {
+        console.log(`Entferne innere Linie für Route ${routeId}.`);
+        layer.innerLayer.setMap(null);
+    }
+    if (layer.startMarker) {
+        console.log(`Entferne Startmarker für Route ${routeId}.`);
+        layer.startMarker.setMap(null);
+    }
+    if (layer.endMarker) {
+        console.log(`Entferne Endmarker für Route ${routeId}.`);
+        layer.endMarker.setMap(null);
+    }
+
+    routeLayers.splice(layerIndex, 1); // Entferne die Route aus routeLayers
+    delete loadedRoutes[routeId]; // Entferne die Route aus loadedRoutes
+
+    console.log(`Route ${routeId} erfolgreich entfernt. Neuer Zustand von routeLayers:`, routeLayers);
+}
+
+
+
+
+function removeRouteByIndex(routeIndex) {
+    console.log(`Versuche, Route mit Index ${routeIndex} zu entfernen.`);
+
+    if (routeLayers[routeIndex]) {
+        const layer = routeLayers[routeIndex];
+
+        if (layer.outerLayer) {
+            console.log(`Entferne äußere Linie für Route mit Index ${routeIndex}.`);
+            layer.outerLayer.setMap(null);
+        }
+        if (layer.innerLayer) {
+            console.log(`Entferne innere Linie für Route mit Index ${routeIndex}.`);
+            layer.innerLayer.setMap(null);
+        }
+        if (layer.startMarker) {
+            console.log(`Entferne Startmarker für Route mit Index ${routeIndex}.`);
+            layer.startMarker.setMap(null);
+        }
+        if (layer.endMarker) {
+            console.log(`Entferne Endmarker für Route mit Index ${routeIndex}.`);
+            layer.endMarker.setMap(null);
+        }
+
+        // Entferne die Route aus der Layer-Liste
+        routeLayers[routeIndex] = null;
+        console.log(`Route mit Index ${routeIndex} erfolgreich entfernt.`);
+    } else {
+        console.warn(`Keine Route mit Index ${routeIndex} gefunden.`);
+    }
+}
+
+
+
+
+
+
+function removeRouteFromDetails(routeId) {
+    const routeElement = document.querySelector(`#route-details-${routeId}`);
+    if (routeElement) {
+        routeElement.remove(); // Entferne die Route aus den Details
+        console.log(`Route ${routeId} aus den Details entfernt.`);
+    }
+}
+
+
+
+
+
+
+
+
+function removeRouteFromMap(routeId) {
+    const routeLayer = routeLayers.find(layer => layer.routeDetails && layer.routeDetails.id === routeId);
+    if (routeLayer) {
+        if (routeLayer.outerLayer) routeLayer.outerLayer.setMap(null);
+        if (routeLayer.innerLayer) routeLayer.innerLayer.setMap(null);
+        if (routeLayer.startMarker) routeLayer.startMarker.setMap(null);
+        if (routeLayer.endMarker) routeLayer.endMarker.setMap(null);
+    }
+
+    // Entferne Route aus den Layern
+    routeLayers = routeLayers.filter(layer => layer.routeDetails && layer.routeDetails.id !== routeId);
+    console.log(`Route ${routeId} von der Karte entfernt.`);
+}
+
+
+// Prüfen, ob sich eine Route geändert hat
+function hasRouteChanged(existingRoute, newRoute) {
+    for (let key in newRoute) {
+        if (newRoute[key] !== existingRoute[key]) {
+            console.log(`Feld geändert: ${key} (alt: ${existingRoute[key]}, neu: ${newRoute[key]})`);
+            return true; // Sobald ein Feld anders ist, gilt die Route als geändert
+        }
+    }
+    return false; // Alle Felder sind gleich
+}
+
+
+// Hilfsfunktion zum Parsen von CSV-Daten
+function parseCSVToJson(csv) {
+    console.log('Starte Parsing der CSV-Daten.');
+    
+    // Spalten-Separator und Zeilenumbruch-Logik
+    const delimiter = ';';
+    const rows = csv.split('\n'); // Zerlege in Zeilen
+
+    const parsedData = [];
+    let headers = [];
+    let currentRow = [];
+    let inQuotes = false;
+
+    rows.forEach((line, lineIndex) => {
+        const values = line.split(delimiter);
+
+        // Verarbeite jede Zelle
+        for (let value of values) {
+            value = value.trim();
+
+            if (value.startsWith('"')) {
+                inQuotes = true;
+                currentRow.push(value); // Starte ein neues Mehrzeilenfeld
+            } else if (inQuotes) {
+                currentRow[currentRow.length - 1] += '\n' + value; // Füge zur letzten Zelle hinzu
+                if (value.endsWith('"')) {
+                    inQuotes = false; // Beende das Mehrzeilenfeld
+                }
+            } else {
+                currentRow.push(value); // Normale Zelle
+            }
+        }
+
+        // Wenn nicht in einem Mehrzeilenfeld und die Header noch nicht festgelegt sind
+        if (!inQuotes && headers.length === 0) {
+            headers = currentRow.map(header => header.trim());
+            console.log('Headers:', headers);
+            currentRow = [];
+        }
+
+        // Wenn eine vollständige Zeile fertig ist
+        if (!inQuotes && currentRow.length > 0) {
+            const result = {};
+            headers.forEach((header, index) => {
+                result[header] = currentRow[index] || null;
+            });
+
+            // Überprüfen, ob die Zeile gültig ist (hat eine ID oder andere wesentliche Felder)
+            if (result.ID && result.ID.trim() !== '') {
+                parsedData.push(result);
+            } else {
+                console.warn(`Ungültige oder leere Zeile ignoriert (Zeile ${lineIndex + 1}):`, result);
+            }
+
+
+            
+
+            currentRow = [];
+        }
+    });
+
+    console.log('CSV erfolgreich geparst:', parsedData);
+    return parsedData;
+}
+
+
+
+
+
+
+function extractRouteDetails(route) {
+    return {
+        id: route['ID'],
+        startAddress: route['Start_Postleitzahl'] + ' ' + route['Start_Ort'] + ', ' + route['Start_Adresse'],
+        endAddress: route['Ziel_Postleitzahl'] + ' ' + route['Ziel_Ort'] + ', ' + route['Ziel_Adresse'],
+        driver: route['Fahrer'],
+        car: route['Auto'],
+        Abholdatum: route['Abholdatum'], // Sicherstellen, dass dieser Header existiert
+        Rückgabedatum: route['Rückgabedatum'], // Sicherstellen, dass dieser Header existiert
+        pickupDate: route['Abholdatum'], // Sicherstellen, dass dieser Header existiert
+       dropoffDate: route['Rückgabedatum'] // Sicherstellen, dass dieser Header existiert
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+let searchMarkers = [];  // Array, um alle Marker zu speichern
+
+// Event-Listener für den Such-Button
+document.getElementById('search-place-button').addEventListener('click', function() {
+    var address = document.getElementById('search-input').value;
+
+    if (address) {
+        // Geocoding, um die Koordinaten der Adresse zu erhalten
+        geocodeAddress(address).then(function(coords) {
+            if (coords) {
+                // Karte auf den gefundenen Ort zoomen
+                map.setCenter({ lat: coords[0], lng: coords[1] });
+                map.setZoom(15);  // Zoom-Level anpassen
+
+                // Neuen Marker auf der Karte platzieren
+                let newMarker = new google.maps.Marker({
+                    position: { lat: coords[0], lng: coords[1] },
+                    map: map,
+                    title: address
+                });
+
+                // Marker zum Array hinzufügen
+                searchMarkers.push(newMarker);
+            } else {
+                alert('Adresse nicht gefunden');
+            }
+        }).catch(function(error) {
+            console.error('Fehler beim Geocoding:', error);
+        });
+    }
+});
+
+// Event-Listener für den Reset-Button
+document.getElementById('reset-search-place-button').addEventListener('click', function() {
+    // Entferne alle Marker und leere das Array
+    searchMarkers.forEach(marker => marker.setMap(null));
+    searchMarkers = [];  // Setze das Array zurück
+
+    // Optional: Karte auf die Standardposition und Zoomstufe zurücksetzen
+    map.setCenter({ lat: defaultLat, lng: defaultLng });
+    map.setZoom(defaultZoom);
+});
+
+
+let currentMarker = null;  // Variable, um den aktuellen Marker zu speichern
+
+document.getElementById('search-route-button').addEventListener('click', function () {
+    const orderNumber = document.getElementById('filter-order-number').value.trim();
+
+    console.log(`Search: Auftragsnummer = "${orderNumber}"`);
+
+    // Lösche alle vorhandenen Routen und Marker von der Karte
+    clearMap();
+
+    // Prüfe, ob eine Auftragsnummer eingegeben wurde
+    if (!orderNumber) {
+        console.log("Search: Keine Auftragsnummer eingegeben. Keine Routen werden angezeigt.");
+        return;  // Zeige keine Routen an, wenn keine Auftragsnummer eingegeben wurde
+    }
+
+    // Filtere die Routen basierend auf der Auftragsnummer
+    routes.forEach((route, index) => {
+        console.log(`Search: Prüfe Route ${index}, Auftragsnummer = ${route.orderNumber}`);
+
+        // Vergleiche die eingegebene Auftragsnummer mit der Auftragsnummer der Route
+        const matchesOrderNumber = String(route.orderNumber).includes(orderNumber);
+
+        console.log(`Search: Route ${index} matchesOrderNumber = ${matchesOrderNumber}`);
+
+        // Zeige die Route nur, wenn die Auftragsnummer übereinstimmt
+        if (matchesOrderNumber) {
+            console.log(`Search: Route ${index} passt zum Filter. Zeige auf der Karte.`);
+            addToMap(index); // Füge die gefilterte Route zur Karte hinzu
+        } else {
+            console.log(`Search: Route ${index} passt nicht zur Auftragsnummer. Blende Route aus.`);
+        }
+    });
+
+    console.log("Gefilterte Routen wurden aktualisiert.");
+
+
+
+
+
+
+
+
+
+
+
+    // Filtere die Routen basierend auf der Auftragsnummer ODER dem Kennzeichen
+    routes.forEach((route, index) => {
+        console.log(`Search: Prüfe Route ${index}, Auftragsnummer = ${route.orderNumber}, Kennzeichen = ${route.licensePlate}`);
+
+        // Konvertiere Auftragsnummer und Kennzeichen in Strings für den Vergleich
+        const matchesOrderNumber = orderNumber === '' || (route.orderNumber && String(route.orderNumber).includes(orderNumber));
+        const matchesLicensePlate = licensePlate === '' || (route.licensePlate && route.licensePlate.includes(licensePlate));
+
+        console.log(`Search: Route ${index} matchesOrderNumber = ${matchesOrderNumber}, matchesLicensePlate = ${matchesLicensePlate}`);
+
+        if (matchesOrderNumber || matchesLicensePlate) {
+            console.log(`Search: Route ${index} passt zum Filter. Zeige auf der Karte.`);
+            addToMap(index); // Füge die gefilterte Route zur Karte hinzu
+        } else {
+            console.log(`Search: Route ${index} passt nicht zum Filter.`);
+        }
+    });
+
+    console.log("Gefilterte Routen wurden aktualisiert.");
+});
+
+
+
+
+
+
+
+
+                // Konfiguration für die Marker
+                const markerConfig = {
+                    circleSize: 15, // Größe des Kreises
+                    circleOpacity: 1, // Opazität des Kreises
+                    stickLength: 15, // Länge des Stabes
+                    stickWidth: 2, // Breite des Stabes
+                    stickColor: '#000000', // Farbe des Stabes (anpassbar)
+                    fontSize: '12px', // Schriftgröße
+                    fontColor: 'black', // Schriftfarbe
+                    circleOffsetX: 2, // X-Achsen-Offset des Kreises
+                    circleOffsetY: 0, // Y-Achsen-Offset des Kreises
+                    stickOffsetX: 10, // X-Achsen-Offset des Stabes
+                    stickOffsetY: 0, // Y-Achsen-Offset des Stabes
+                    textOffsetX: 0.6, // X-Achsen-Offset des Buchstabens
+                    textOffsetY: 0, // Y-Achsen-Offset des Buchstabens
+                    anchorX: 15, // X-Achsen-Anker des Markers
+                    anchorY: 30 // Y-Achsen-Anker des Markers
+                };
+
+                
+
+                // Funktion zum Geokodieren mit der Google Maps API
+                async function geocodeAddress(address) {
+                    console.warn(`[Geocoding API] Anfrage gestartet für Adresse: ${address}`);
+    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}`;
+    
+    try {
+        const response = await fetch(geocodeUrl);
+        const data = await response.json();
+        if (data.status === 'OK') {
+            const location = data.results[0].geometry.location;
+            return [location.lat, location.lng];
+        } else {
+            throw new Error(`Geocoding fehlgeschlagen: ${data.status}`);
+        }
+    } catch (error) {
+        console.error('Geocoding Fehler:', error.message);
+        return null;
+    }
+}
+
+
+
+                // Funktion zum Erstellen von benutzerdefinierten Markern
+                function createCustomMarker(text, routeColor) {
+                    const circleSize = markerConfig.circleSize;
+                    const stickLength = markerConfig.stickLength;
+                    const stickWidth = markerConfig.stickWidth;
+                    const circleOpacity = markerConfig.circleOpacity;
+                    const stickColor = markerConfig.stickColor; // Farbe des Stabes
+                    const fontSize = markerConfig.fontSize;
+                    const fontColor = markerConfig.fontColor;
+                    const circleOffsetX = markerConfig.circleOffsetX;
+                    const circleOffsetY = markerConfig.circleOffsetY;
+                    const stickOffsetX = markerConfig.stickOffsetX;
+                    const stickOffsetY = markerConfig.stickOffsetY;
+                    const textOffsetX = markerConfig.textOffsetX;
+                    const textOffsetY = markerConfig.textOffsetY;
+                    const anchorX = markerConfig.anchorX;
+                    const anchorY = markerConfig.anchorY;
+
+                    return L.divIcon({
+                        className: 'custom-icon',
+                        html: `<div style="position: relative; text-align: center; width: ${circleSize}px; height: ${circleSize + stickLength}px;">
+                            <!-- Kreis -->
+                            <div style="background-color: ${routeColor}; color: ${fontColor}; border-radius: 50%; width: ${circleSize}px; height: ${circleSize}px; text-align: center; line-height: ${circleSize}px; font-size: ${fontSize}; position: absolute; top: ${circleOffsetY}px; left: ${circleOffsetX}px; opacity: ${circleOpacity};">
+                                <span style="position: relative; top: ${textOffsetY}px; left: ${textOffsetX}px;">${text}</span>
+                            </div>
+                            <!-- Stab -->
+                            <div style="position: absolute; width: ${stickWidth}px; height: ${stickLength}px; background-color: ${stickColor}; top: ${circleSize + stickOffsetY}px; left: ${stickOffsetX}px;"></div>
+                        </div>`,
+                        iconSize: [circleSize, circleSize + stickLength],
+                        iconAnchor: [anchorX, anchorY]
+                    });
+                }
+
+                function enqueueRoute(startAddress, endAddress, routeDetails) {
+    // Weise die Farbe direkt hier zu
+    routeDetails.routeColor = getNextColor();  // Nächste Farbe holen
+    console.log("Farbe für neue Route (enqueueRoute): ", routeDetails.routeColor);  // Debugging
+
+    // Füge die Route zur Warteschlange hinzu
+    routeQueue.push({ startAddress, endAddress, routeDetails });
+    processQueue();  // Starte die Verarbeitung der Warteschlange
+}
+
+// Nachdem eine Route erstellt wurde (z.B. nach dem Hinzufügen zur Karte):
+let routeIndex = 0; // Initialize routeIndex
+
+function isValidDate(d) {
+    return d instanceof Date && !isNaN(d);
+}
+
+
+
+
+// Funktion zum Ausblenden aller Routen und Marker von der Karte, aber die Daten behalten
+function clearMap() {
+    console.log("clearMap: Versuche, alle Routen auszublenden.");
+    routeLayers.forEach((layer, index) => {
+        if (layer) {
+            console.log(`clearMap: Route ${index} wird ausgeblendet.`);
+            if (layer.outerLayer) {
+                layer.outerLayer.setMap(null);
+                console.log(`clearMap: Äußere Route ${index} ausgeblendet.`);
+            }
+            if (layer.innerLayer) {
+                layer.innerLayer.setMap(null);
+                console.log(`clearMap: Innere Route ${index} ausgeblendet.`);
+            }
+            if (layer.startMarker) {
+                layer.startMarker.setMap(null);
+                console.log(`clearMap: Startmarker ${index} ausgeblendet.`);
+            }
+            if (layer.endMarker) {
+                layer.endMarker.setMap(null);
+                console.log(`clearMap: Endmarker ${index} ausgeblendet.`);
+            }
+        } else {
+            console.warn(`clearMap: Route ${index} ist undefined!`);
+        }
+    });
+}
+
+
+
+// Funktion zum Hinzufügen von Routen und Markern zur Karte
+function addToMap(index) {
+    console.log(`addToMap: Versuche, Route ${index} hinzuzufügen.`);
+    if (routeLayers[index]) {
+        console.log(`addToMap: Route ${index} wird hinzugefügt.`);
+        if (routeLayers[index].outerLayer) {
+            routeLayers[index].outerLayer.setMap(map);
+            console.log(`addToMap: Äußere Route ${index} hinzugefügt.`);
+        }
+        if (routeLayers[index].innerLayer) {
+            routeLayers[index].innerLayer.setMap(map);
+            console.log(`addToMap: Innere Route ${index} hinzugefügt.`);
+        }
+        if (routeLayers[index].startMarker) {
+            routeLayers[index].startMarker.setMap(map);
+            console.log(`addToMap: Startmarker ${index} hinzugefügt.`);
+        }
+        if (routeLayers[index].endMarker) {
+            routeLayers[index].endMarker.setMap(map);
+            console.log(`addToMap: Endmarker ${index} hinzugefügt.`);
+        }
+    } else {
+        console.error(`addToMap: routeLayers[${index}] ist undefined. Route wird nicht hinzugefügt.`);
+    }
+}
+
+
+
+
+
+
+function addRoute(startAddress, endAddress, routeDetails) {
+    // Sicherstellen, dass routeColor gesetzt ist, bevor wir mit der Route fortfahren
+    if (!routeDetails.routeColor) {
+        routeDetails.routeColor = getNextColor();  // Setze die Farbe, falls nicht vorhanden
+    }
+
+
+    if (!startAddress || !endAddress || !details) {
+        console.error('Ungültige Parameter für addRoute:', { startAddress, endAddress, details });
+        return;
+    }
+    console.log('Füge Route zur Karte hinzu:', { startAddress, endAddress, details });
+
+     // Speichern der ID in loadedRoutes
+     loadedRoutes[routeDetails.id] = routeDetails;
+
+
+    routeLayers.push({
+        routeDetails: { id: routeDetails.id }, // Speichern der ID
+        outerLayer: null, // Platzhalter für äußere Linie
+        innerLayer: null, // Platzhalter für innere Linie
+        startMarker: null, // Platzhalter für Startmarker
+        endMarker: null // Platzhalter für Endmarker
+    });
+
+    console.log('Aktualisierter Zustand von routeLayers:', routeLayers);
+
+    
+    routeDetails.pickupDate = parseDate(routeDetails.pickupDate);
+routeDetails.dropoffDate = parseDate(routeDetails.dropoffDate);
+console.log("Abholdatum (addRoute):", routeDetails.pickupDate);
+
+if (!routeDetails.pickupDate || isNaN(routeDetails.pickupDate.getTime())) {
+    console.error("Ungültiges Abholdatum:", routeDetails.pickupDate);
+    
+}
+if (!routeDetails.dropoffDate || isNaN(routeDetails.dropoffDate.getTime())) {
+    console.error("Ungültiges Rückgabedatum:", routeDetails.dropoffDate);
+   
+}
+
+
+
+
+    // Wenn das Abholdatum ungültig ist, Route nicht hinzufügen
+    if (!routeDetails.Abholdatum) {
+        console.error("Ungültiges Abholdatum für die Route:", routeDetails);
+        
+    }
+   
+
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true,  // Standard-Marker unterdrücken
+        polylineOptions: {
+            strokeColor: routeDetails.routeColor,  // Verwende die Route-Farbe hier
+            strokeOpacity: 1.0,
+            strokeWeight: 3
+        }
+    });
+
+
+    const outerRenderer = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true,  // Standard-Marker unterdrücken
+    polylineOptions: {
+        strokeColor: 'black',  // Schwarz für die Umrandung
+        strokeOpacity: 1.0,
+        strokeWeight: 4        // Dickere Linie für die Umrandung
+    }
+});
+
+const innerRenderer = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true,  // Standard-Marker unterdrücken
+    polylineOptions: {
+        strokeColor: routeDetails.routeColor,  // Verwende die Route-Farbe
+        strokeOpacity: 0.8,
+        strokeWeight: 2         // Dünnere Linie für die Route
+    }
+});
+
+
+    console.log("Route hinzugefügt: ", {startAddress, endAddress, routeDetails});
+
+    // Debugging: Überprüfe die Route-Farbe, bevor die Directions angefragt werden
+    console.log("Route-Farbe vor dem Directions-Request (addRoute): ", routeDetails.routeColor);
+
+    directionsService.route({
+        origin: startAddress,
+        destination: endAddress,
+        travelMode: google.maps.TravelMode.DRIVING
+    }, function(response, status) {
+        if (status === google.maps.DirectionsStatus.OK) {
+            console.warn(`[Directions API) gestartet für Route: ${startAddress} -> ${endAddress}`);
+    outerRenderer.setDirections(response);  // Zeichne die äußere Linie (Umrandung)
+        innerRenderer.setDirections(response);  // Zeichne die innere Linie (Route-Farbe)
+        // Fahrzeit und Entfernung aus den Routeninformationen abrufen
+const route = response.routes[0].legs[0];
+const durationText = route.duration.text;
+const distanceText = route.distance.text;
+
+
+         
+            routeDetails.directions = response;  // Speichere die Directions im routeDetails-Objekt
+
+            // Debugging: Überprüfe die Route-Farbe nach dem Directions-Request
+            console.log("Route-Farbe nach Directions-Request: ", routeDetails.routeColor);
+
+            // Füge die Marker hinzu, nachdem die Routeninformationen vorliegen
+            geocodeAddress(startAddress).then(startCoords => {
+                if (!startCoords) return;
+
+                geocodeAddress(endAddress).then(endCoords => {
+                    if (!endCoords) return;
+
+                    // Verwende die Route-Farbe für die Marker
+                    const routeColor = routeDetails.routeColor || '#FF0000';  // Fallback auf Rot
+
+                    // Debugging: Marker-Farbe überprüfen
+                    console.log("Marker-Farbe für Start und Ende (addRoute): ", routeColor);
+
+                    // Erstelle Start-Marker mit der Route-Farbe
+                    const startMarker = new google.maps.Marker({
+                        position: { lat: startCoords[0], lng: startCoords[1] },
+                        map: map,
+                        label: {
+        text: 'A',  // Das Label des Startmarkers
+        fontSize: '11px',  // Die Schriftgröße des Labels
+        fontWeight: 'fat',  // Optional: Fettschrift
+        color: 'black'  // Die Farbe des Textes
+    },
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: routeColor,  // Verwende die Route-Farbe
+                            fillOpacity: 1,
+                            strokeColor: 'black',
+                            strokeWeight: 0.3,
+                            scale: 6
+                        }
+                    });
+
+                    // Erstelle End-Marker mit der Route-Farbe
+                    const endMarker = new google.maps.Marker({
+                        position: { lat: endCoords[0], lng: endCoords[1] },
+                        map: map,
+                        label: {
+        text: 'E',  // Das Label des Endmarkers
+        fontSize: '11px',  // Die Schriftgröße des Labels
+        fontWeight: 'fat',  // Optional: Fettschrift
+        color: 'black'  // Die Farbe des Textes
+    },
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: routeColor,  // Verwende die Route-Farbe
+                            fillOpacity: 1,
+                            strokeColor: 'black',
+                            strokeWeight: 0.3,
+                            scale: 6
+                        }
+                    });
+
+
+     // Überprüfen, ob das `pickupDate` korrekt konvertiert wurde
+     if (!routeDetails.pickupDate) {
+        console.error("Ungültiges Abholdatum für die Route:", routeDetails);
+       
+    }
+
+
+
+    
+
+    
+    // Speichere die Route mit allen relevanten Informationen
+    routes.push({
+                startAddress: startAddress,
+                endAddress: endAddress,
+                orderNumber: routeDetails.orderNumber || 'Unbekannt',  // Auftragsnummer setzen
+                licensePlate: routeDetails.licensePlate || 'Unbekannt', // Kennzeichen setzen
+                pickupDate: routeDetails.pickupDate,
+                dropoffDate: routeDetails.dropoffDate,
+                pickupTime: routeDetails.pickupTime,
+                dropoffTime: routeDetails.dropoffTime,
+                driver: routeDetails.driver,
+                car: routeDetails.car
+            });
+
+                    
+
+    // Debugging: Überprüfe die hinzugefügte Route
+    console.log("Neue Route hinzugefügt mit Details:", {
+        startAddress: startAddress,
+        endAddress: endAddress,
+        pickupDate: routeDetails.pickupDate,
+        dropoffDate: routeDetails.dropoffDate,
+        typeofPickupDate: typeof routeDetails.pickupDate,
+        typeofDropoffDate: typeof routeDetails.dropoffDate
+    });
+
+    console.log("Route erfolgreich hinzugefügt:", {
+        startAddress,
+        endAddress,
+        pickupDate: routeDetails.pickupDate,
+        dropoffDate: routeDetails.dropoffDate
+    });
+
+
+    console.log("Aktualisierte routes-Liste:", routes);
+
+                     // Route und Marker zur routeLayers hinzufügen
+                    routeLayers[routeIndex] = {
+                        outerLayer: outerRenderer,  // Umrandung
+                        innerLayer: innerRenderer,  // Farbige Route
+                        startMarker: startMarker,
+                        endMarker: endMarker
+                    };
+                    console.log(startAddress, endAddress);
+
+                        // Füge die Route zur Liste hinzu
+                        addRouteToList(routeIndex, startAddress, endAddress);
+                        routeIndex++; // routeIndex erst hier erhöhen, nachdem alles erfolgreich hinzugefügt wurde
+
+
+                        
+
+                     // Infofenster für Start- und Endmarker hinzufügen
+                     // Infofenster für Start- und Endmarker mit Fahrzeit und Entfernung
+const startPopup = new google.maps.InfoWindow({
+    content: `<b>Startpunkt:</b> ${startAddress}<br>
+    <b>              </b>             <br>
+    <b>Endpunkt:</b> ${endAddress}<br>
+    <b>Entfernung:</b> ${distanceText},${durationText}<br>
+    
+    <b>Fahrer:</b> ${routeDetails.driver}<br>
+    <b>Auto:</b> ${routeDetails.car}<br>
+   <b>Abholdatum:</b> ${routeDetails.pickupDate !== undefined ? formatDate(routeDetails.pickupDate) : formatDate(routeDetails.Abholdatum)} - ${routeDetails.dropoffDate !== undefined ? formatDate(routeDetails.dropoffDate) : formatDate(routeDetails.Rückgabedatum)}<br>
+    
+   `
+});
+
+const endPopup = new google.maps.InfoWindow({
+    content: `<b>Endpunkt:</b> ${endAddress}<br>
+    <b>              </b>             <br>
+    <b>Startpunkt:</b> ${startAddress}<br>
+    <b>Entfernung:</b> ${distanceText},${durationText}<br>
+    
+    <b>Fahrer:</b> ${routeDetails.driver}<br>
+    <b>Auto:</b> ${routeDetails.car}<br>
+    <b>Rückgabedatum:</b> ${routeDetails.dropoffDate !== undefined ? formatDate(routeDetails.dropoffDate) : formatDate(routeDetails.Rückgabedatum)}<br>
+    
+   `
+});
+
+                    
+
+                    // Klickevents für die Marker
+                    startMarker.addListener('click', function () {
+                        startPopup.open(map, startMarker);
+                    });
+
+                    endMarker.addListener('click', function () {
+                        endPopup.open(map, endMarker);
+                    });
+                });
+            });
+             
+        } else {
+            console.error('Directions Request failed:', status);
+        }
+           
+    });
+
+
+
+    function formatDate(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Monat wird von 0-11 gezählt, daher +1
+    const day = d.getDate().toString().padStart(2, '0'); // Tag mit führender Null
+    return `${day}.${month}.${year}`;
+  }
+
+
+
+
+        
+
+    
+function addRouteToList(routeIndex, start, end) {
+    console.log(`routeIndex: ${routeIndex}`);
+    const routeList = document.getElementById('route-list');
+    const div = document.createElement('div');
+    div.className = 'route-item';
+
+    div.innerHTML =
+        `<div>
+            <input type="checkbox" id="route-${routeIndex}" checked />
+            <label for="route-${routeIndex}">Route von ${start} nach ${end}</label>
+        </div>`;
+        
+    // Füge das neue Element in die Route-Liste ein
+    routeList.appendChild(div);
+
+    // Checkbox-Änderungen überwachen
+    div.querySelector('input').addEventListener('change', function () {
+    const index = parseInt(this.id.split('-')[1]);
+    if (this.checked) {
+    if (routeLayers[index]) {
+        console.log(`Adding route and markers for index: ${index}`);
+        if (routeLayers[index].routeLayer) {
+            routeLayers[index].routeLayer.setMap(map);
+        }
+        if (routeLayers[index].startMarker) {
+            routeLayers[index].startMarker.setMap(map);
+        }
+        if (routeLayers[index].endMarker) {
+            routeLayers[index].endMarker.setMap(map);
+        }
+        if (routeLayers[index].outerLayer) {
+            routeLayers[index].outerLayer.setMap(map);
+        }
+        if (routeLayers[index].innerLayer) {
+            routeLayers[index].innerLayer.setMap(map);
+        }
+    } else {
+        console.error(`routeLayers[${index}] is undefined`);
+    }
+} else {
+    if (routeLayers[index]) {
+        console.log(`Removing route and markers for index: ${index}`);
+        if (routeLayers[index].routeLayer) {
+            routeLayers[index].routeLayer.setMap(null); // Hide route
+        }
+        if (routeLayers[index].startMarker) {
+            routeLayers[index].startMarker.setMap(null); // Hide start marker
+        }
+        if (routeLayers[index].endMarker) {
+            routeLayers[index].endMarker.setMap(null); // Hide end marker
+        }
+        if (routeLayers[index].outerLayer) {
+            routeLayers[index].outerLayer.setMap(null);
+        }
+        if (routeLayers[index].innerLayer) {
+            routeLayers[index].innerLayer.setMap(null);
+        }
+    } else {
+        console.error(`routeLayers[${index}] is undefined`);
+    }
+    console.log("Route entfernt");
+}
+
+
+
+});
+
+}
+
+
+
+}
+
+// Füge diese Funktion hinzu, um AdvancedMarker zu erstellen
+function createAdvancedMarker(map, position, label, routeColor) {
+    console.log("Erstelle AdvancedMarker mit Label:", label);
+    return new google.maps.Marker({
+        map: map,
+        position: position,
+        label: {
+            text: label,
+            color: 'white'
+        },
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: routeColor,
+            fillOpacity: 1,
+            strokeColor: 'black',
+            strokeWeight: 2,
+            scale: 5 // Größe des Markers
+        }
+    });
+}
+
+
+
+function addMarkers(route, routeDetails) {
+    if (route && route.legs && route.legs.length > 0) {
+        // Geocode die Start- und Endadresse
+        geocodeAddress(routeDetails.startAddress).then(startCoords => {
+            if (!startCoords) return;  // Geocoding fehlgeschlagen, Marker nicht hinzufügen
+            
+            geocodeAddress(routeDetails.endAddress).then(endCoords => {
+                if (!endCoords) return;  // Geocoding fehlgeschlagen, Marker nicht hinzufügen
+                
+                // Verwende die Route-Farbe für die Marker
+                const routeColor = routeDetails.routeColor;  // Route-Farbe übernehmen
+                
+                // Erstelle Start-Marker mit der Route-Farbe
+                const startMarker = new google.maps.Marker({
+                    position: { lat: startCoords[0], lng: startCoords[1] },  // Verwende LatLng
+                    map: map,
+                    label: 'A',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: routeColor,  // Route-Farbe verwenden
+                        fillOpacity: 1,
+                        strokeColor: 'black',  // Optional: Schwarzer Rand für bessere Sichtbarkeit
+                        strokeWeight: 2,
+                        scale: 1  // Größe des Markers
+                    }
+                });
+                
+                // Erstelle End-Marker mit der Route-Farbe
+                const endMarker = new google.maps.Marker({
+                    position: { lat: endCoords[0], lng: endCoords[1] },  // Verwende LatLng
+                    map: map,
+                    label: 'E',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: routeColor,  // Route-Farbe verwenden
+                        fillOpacity: 1,
+                        strokeColor: 'black',  // Optional: Schwarzer Rand für bessere Sichtbarkeit
+                        strokeWeight: 2,
+                        scale: 1  // Größe des Markers
+                    }
+                });
+
+                // Optional: Popup-Infos für Start- und Endmarker
+                const startPopup = new google.maps.InfoWindow({
+                    content: `<b>Startpunkt:</b> ${routeDetails.startAddress}<br><b>Fahrer:</b> ${routeDetails.driver}`
+                });
+                startMarker.addListener('click', function() {
+                    startPopup.open(map, startMarker);
+                });
+
+                const endPopup = new google.maps.InfoWindow({
+                    content: `<b>Endpunkt:</b> ${routeDetails.endAddress}<br><b>Fahrer:</b> ${routeDetails.driver}`
+                });
+                endMarker.addListener('click', function() {
+                    endPopup.open(map, endMarker);
+                });
+            });
+        });
+    } else {
+        console.error('Route legs are undefined or empty');
+    }
+}
+
+
+
+
+
+
+
+
+function addRouteToList(routeIndex, start, end) {
+    const routeList = document.getElementById('route-list');
+    const div = document.createElement('div');
+    div.className = 'route-item';
+
+    div.innerHTML =
+        `<div>
+            <input type="checkbox" id="route-${routeIndex}" checked />
+            <label for="route-${routeIndex}">Route von ${start} nach ${end}</label>
+        </div>`;
+        
+    routeList.appendChild(div);
+
+    // Checkbox-Änderungen überwachen
+    div.querySelector('input').addEventListener('change', function () {
+        const index = parseInt(this.id.split('-')[1]);
+
+        if (this.checked) {
+            if (routeLayers[index]) {
+                routeLayers[index].routeLayer.setMap(map);
+                routeLayers[index].startMarker.setMap(map);
+                routeLayers[index].endMarker.setMap(map);
+            }
+        } else {
+            if (routeLayers[index]) {
+                routeLayers[index].routeLayer.setMap(null);
+                routeLayers[index].startMarker.setMap(null);
+                routeLayers[index].endMarker.setMap(null);
+            }
+        }
+    });
+}
+
+               // function createDriverIcon(isActive) {
+                   // return L.icon({
+                   //     iconUrl: isActive ? 'Stecknadel_Fahrer_Frei.png' : 'Stecknadel_Fahrer_Nicht_Frei.png',
+                   //     iconSize: [32, 32], // Größe des Icons
+                    //    iconAnchor: [16, 32], // Position der "Spitze" des Icons
+                    //    popupAnchor: [0, -32] // Position des Popups
+                 //   });
+              //  }
+
+                function updateDriverMarkers() {
+    // Zuerst entfernen wir alle Fahrer-Marker von der Karte
+    driverMarkers.forEach(marker => {
+        marker.setMap(null);  // Verwende setMap(null) anstatt map.removeLayer()
+    });
+    driverMarkers = []; // Reset der Marker-Liste
+
+    const statusFilter = document.getElementById('filter-driver-status').value;
+
+    drivers.forEach(driver => {
+        // Optional: Status-Filter anwenden
+        if (statusFilter === '' || driver.status === statusFilter) {
+            geocodeAddress(driver.location).then(coords => {
+                if (coords) {
+                    const driverMarker = new google.maps.Marker({
+                        position: { lat: coords[0], lng: coords[1] },
+                        map: map,
+                        title: driver.name,
+                        icon: {
+                            path: 'M 0,0 L 0,-20',  // Strich als Icon
+                            strokeColor: 'red',  // Roter Strich
+                            strokeWeight: 4,  // Dicke des Striches
+                            scale: 1  // Skalierung
+                        }
+                    });
+
+                    // Füge ein Popup hinzu, wenn du möchtest
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<b>Name:</b> ${driver.name}<br><b>Standort:</b> ${driver.location}`
+                    });
+
+                    driverMarker.addListener('click', function () {
+                        infoWindow.open(map, driverMarker);
+                    });
+
+                    driverMarkers.push(driverMarker);  // Marker zur Liste hinzufügen
+                } else {
+                    console.error('Geocoding-Fehler für Standort:', driver.location);
+                }
+            });
+        }
+    });
+}
+
+
+                // Event-Listener für den Fahrerstatus-Filter
+                document.getElementById('filter-driver-status').addEventListener('change', function () {
+                    updateDriverMarkers(); // Aktualisiere die Marker auf der Karte basierend auf dem ausgewühlten Status
+                });
+
+
+                document.getElementById('driver-form').addEventListener('change', function (e) {
+    console.log("CSV-Datei ausgewählt...");
+    const file = e.target.files[0]; // CSV-Datei auswählen
+    
+    if (!file) {
+        console.error("Keine Datei ausgewählt!");
+        return;
+    }
+
+    console.log("Lese Datei: ", file.name);
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        console.log("Datei erfolgreich gelesen!");
+        const text = event.target.result;
+        console.log("Dateiinhalt (erste 100 Zeichen): ", text.substring(0, 100)); // Ausgabe der ersten 100 Zeichen
+
+        const rows = text.split('\n'); // Zerlege in Zeilen
+        console.log("Anzahl der Zeilen in der CSV:", rows.length);
+
+        if (rows.length < 2) {
+            console.error("Keine Datenzeilen gefunden!");
+            return;
+        }
+
+        // Die Kopfzeile zur Kontrolle ausgeben
+        console.log("Kopfzeile: ", rows[0]);
+
+        // Überprüfe jede Zeile, außer der Kopfzeile
+        rows.slice(1).forEach((row, index) => {
+            console.log(`Verarbeite Zeile ${index + 2}: ${row}`);
+
+            const columns = row.split(';'); // Spalten durch Semikolon getrennt
+            if (columns.length < 7) {
+                console.warn(`Ungültige Zeile (${index + 2}): Zu wenige Spalten.`);
+                return; // Ignoriere unvollständige Zeilen
+            }
+
+            // Extrahiere relevante Felder aus der CSV
+            const vorname = columns[1].trim(); // Vorname
+            const nachname = columns[2].trim(); // Nachname
+            const street = columns[4].trim(); // Adresse (z.B. "Großer Hillen 4")
+            const plz = columns[5].trim(); // Postleitzahl
+            const city = columns[6].trim(); // Ort (z.B. "Hannover")
+            const id = columns[0].trim();
+const fuehrerscheinklasse = columns[7].trim();
+const bahncard100 = columns[8].trim();
+const bahncard50 = columns[9].trim();
+const mobil = columns[10].trim();
+const festnetz = columns[11].trim();
+const schulnoten = columns[12].trim();
+const besonderheiten = columns[13]?.trim();
+
+
+            // Prüfe, ob alle Teile für die Adresse vorhanden sind
+            if (!vorname || !nachname || !street || !plz || !city) {
+                console.error(`Fehlende Daten in Zeile ${index + 2}. Vorname: "${vorname}", Nachname: "${nachname}", Straße: "${street}", PLZ: "${plz}", Stadt: "${city}"`);
+                return;
+            }
+
+            // Zusammensetzen der vollständigen Adresse
+            const name = `${vorname} ${nachname}`; // Kombiniere Vorname und Nachname
+            const address = `${plz} ${city}, ${street}`; // Vollständige Adresse erstellen
+            console.log(`Fahrer: ${name}, Vollständige Adresse: ${address}`);
+
+            // Geokodieren der Adresse und Marker hinzufügen
+            geocodeAddress(address).then((coords) => {
+                if (!coords) {
+                    console.error(`Geocoding fehlgeschlagen für Adresse: ${address}`);
+                    return;
+                }
+
+                console.log(`Geokodierte Koordinaten für ${address}: ${coords}`);
+
+
+// Innerer Marker als rotes Kreuz mit unsichtbarer Rechteck-Hitbox
+const marker = new google.maps.Marker({
+    position: { lat: coords[0], lng: coords[1] },
+    map: map,
+    title: name,
+    icon: {
+        path: 'M -10,-10 L 10,10 M 10,-10 L -10,10',  // Rotes Kreuz
+        strokeColor: '#FF073A',      // Rote Farbe
+        strokeWeight: 2,             // Dicke des Striches
+        scale: 0.6                     // Skalierung
+    },
+    shape: {
+        coords: [-10, -10, 10, 10],  // Unsichtbare Rechteck-Hitbox
+        type: 'rect'
+    }
+});
+
+
+                console.log(`Marker für ${name} hinzugefügt!`);
+
+                // Füge ein Infofenster hinzu
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<b>Name:</b> ${name}<br><b>Adresse:</b> ${address}<br> <b>ID:</b> ${id}<br>
+        <b>Führerscheinklasse:</b> ${fuehrerscheinklasse}<br>
+        <b>Bahncard 100:</b> ${bahncard100 === 'WAHR' ? 'Ja' : 'Nein'}<br>
+        <b>Bahncard 50:</b> ${bahncard50 === 'WAHR' ? 'Ja' : 'Nein'}<br>
+        <b>Mobil:</b> ${mobil || 'Nicht verfügbar'}<br>
+        <b>Festnetz:</b> ${festnetz || 'Nicht verfügbar'}<br>
+        <b>Schulnoten:</b> ${schulnoten}<br>
+        <b>Besonderheiten:</b> ${besonderheiten || 'Keine'}`,
+                });
+
+                marker.addListener('click', function () {
+                    infoWindow.open(map, marker);
+                });
+
+               
+
+                driverMarkers.push(marker); // Marker zur Liste hinzufügen
+            }).catch((error) => {
+                console.error(`Fehler beim Geocoding von ${address}:`, error);
+            });
+        });
+    };
+
+    reader.onerror = function () {
+        console.error("Fehler beim Lesen der Datei:", reader.error);
+    };
+
+    reader.readAsText(file); // Lese die Datei als Text
+});
+
+
+
+
+                function determineDriverStatus(driver) {
+                    const weekdays = {
+                        'Sonntag': 0,
+                        'Montag': 1,
+                        'Dienstag': 2,
+                        'Mittwoch': 3,
+                        'Donnerstag': 4,
+                        'Freitag': 5,
+                        'Samstag': 6
+                    };
+                    const today = new Date().getDay(); // Aktueller Wochentag
+
+                    // Freie Tage des Fahrers in eine Liste umwandeln
+                    const freeDays = driver.freeDays
+                        ? driver.freeDays.split(/[\s,]+/).map(day => day.trim())
+                        : [];
+
+                    // Prüfen, ob der Fahrer heute frei ist
+                    const isFreeToday = freeDays.some(day => weekdays[day] === today);
+
+                    // Status "frei", wenn der Fahrer heute nicht frei ist
+                    return isFreeToday ? 'nicht frei' : 'frei';
+                }
+
+                // Funktion zum Filtern der Fahrer nach Status
+                function filterDriversByStatus(status) {
+                    const filteredDrivers = drivers.filter(driver => driver.status === status);
+                    console.log(`Gefilterte Fahrer mit Status "${status}":`, filteredDrivers);
+
+                    // Hier kannst du die Logik einfügen, um die gefilterten Fahrer anzuzeigen, z.B. in einer Tabelle oder auf einer Karte.
+                }
+                // Formular zum Hinzufügen einer Route
+                document.getElementById('route-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const startAddress = document.getElementById('start-address').value;
+                    const endAddress = document.getElementById('end-address').value;
+                    const driver = document.getElementById('driver').value;
+                    const car = document.getElementById('car').value;
+                    const pickupDate = document.getElementById('pickup-date').value;
+                    const pickupTime = document.getElementById('pickup-time').value;
+                    const dropoffDate = document.getElementById('dropoff-date').value;
+                    const dropoffTime = document.getElementById('dropoff-time').value;
+
+                     // Füge die Route zur Warteschlange hinzu
+        enqueueRoute(startAddress, endAddress, {
+            startAddress, endAddress, driver, car, pickupDate, pickupTime, dropoffDate, dropoffTime
+        });
+                    document.getElementById('route-form').reset();
+                });
+
+
+                // Formular zum Hinzufügen eines Fahrers
+                document.getElementById('driver-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const name = document.getElementById('driver-name').value;
+                    const status = document.getElementById('driver-status').value;
+                    const location = document.getElementById('driver-location').value;
+                    const driverData = { name, status, location, freeDays: '' };
+                    drivers.push(driverData);
+
+
+                    // Marker aktualisieren basierend auf dem aktuellen Filter
+                    updateDriverMarkers();
+                    document.getElementById('driver-form').reset();
+                });
+
+                // Funktion zum Konvertieren von Excel-Datumswerten in ein gültiges Datum
+                function excelDateToJSDate(serial) {
+                    const excelEpoch = new Date(1899, 11, 30); // Excel verwendet 30.12.1899 als Basisdatum
+                    const jsDate = new Date(excelEpoch.getTime() + (serial - 1) * 24 * 60 * 60 * 1000);
+                    return jsDate;
+                }
+
+                // Funktion zum Validieren von Datumswerten
+function isValidDate(d) {
+    return d instanceof Date && !isNaN(d);
+}
+
+function excelDateToJSDate(serial) {
+    const excelEpoch = new Date(1899, 11, 30); // Excel verwendet den 30. Dezember 1899 als Basisdatum
+    return new Date(excelEpoch.getTime() + (serial - 1) * 24 * 60 * 60 * 1000); // Konvertiere zu JavaScript-Datum
+}
+
+function parseDate(dateStr) {
+    console.log("DateStr", dateStr);
+    if (!dateStr) {
+        console.log("null");
+        return null; // Gib null zurück, wenn die Eingabe leer ist
+        
+    }
+
+    if (typeof dateStr === 'number') {
+    // Dezimalstellen entfernen
+    const integerDateStr = Math.floor(dateStr) + 1; // Rundet nach unten und entfernt Dezimalstellen
+    console.log("number");
+
+    // Excel-Datumswert behandeln
+    return excelDateToJSDate(integerDateStr);
+}
+
+
+    if (typeof dateStr === 'string') {
+        dateStr = dateStr.trim();
+
+        // Prüfen auf ISO-Format (YYYY-MM-DD)
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            console.log("YYYY-MM-DD");
+            return new Date(dateStr);
+           
+        }
+
+        // Prüfen auf deutsches Format (DD.MM.YYYY)
+        if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
+            const [day, month, year] = dateStr.split('.').map(Number);
+            console.log("DD.MM.YYYY");
+            return new Date(year, month, day);
+           
+        }
+    }
+
+    console.error('Ungültiges Datum gefunden:', dateStr);
+    return new Date(dateStr);
+}
+
+
+
+                console.log("Verfügbare Routen:", routes); // Vergewissere dich, dass Routen vorhanden sind.
+routes.forEach(route => {
+    console.log("Route Details:", route);
+});
+
+routes.forEach(route => {
+    console.log("Abholdatum der Route (vor Filterung):", route.pickupDate);
+});
+
+function filterRoutesByDateRange(startDateStr, endDateStr) {
+    // Konvertiere die Start- und Enddatums-Strings in `Date`-Objekte
+    const startDate = new Date(document.getElementById('filter-pickup-date-start').value);
+const endDate = new Date(document.getElementById('filter-pickup-date-end').value);
+
+
+    console.log("Startdatum (timestamp):", startDate, "Enddatum (timestamp):", endDate);
+
+    // Überprüfe jede Route und wende den Filter an
+    return originalRoutes.filter(route => {
+        if (!route.pickupDate || !(route.pickupDate instanceof Date)) {
+            console.error("Ungültiges `pickupDate` für Route:", route);
+            return false; // Ungültige Route ausschließen
+        }
+
+        // Konvertiere `pickupDate` in `timestamp`
+        const routePickupTimestamp = new Date(route.pickupDate).getTime();
+
+        console.log("Route:", route.startAddress, "Pickup Date (timestamp):", routePickupTimestamp);
+
+        // Filterlogik basierend auf den Timestamps
+        if (startDate && endDate) {
+            return routePickupTimestamp >= startDate && routePickupTimestamp <= endDate;
+        } else if (startDate) {
+            return routePickupTimestamp >= startDate;
+        } else if (endDate) {
+            return routePickupTimestamp <= endDate;
+        }
+
+        return true; // Zeige alle Routen, wenn keine Filter gesetzt sind
+    });
+}
+
+
+
+
+
+
+
+
+routes.forEach(route => {
+    console.log("Überprüfung der Route vor der Filterung:", {
+        startAddress: route.startAddress,
+        endAddress: route.endAddress,
+        pickupDate: route.pickupDate,
+        dropoffDate: route.dropoffDate,
+        typeofPickupDate: typeof route.pickupDate,
+        typeofDropoffDate: typeof route.dropoffDate
+    });
+});
+
+
+
+
+
+
+function formatDateToYYYYMMDD(dateStr) {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Monat ist 0-basiert
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+
+let originalRoutes = []; // Eine Kopie der ursprünglichen routes-Liste
+
+
+// Nach dem Laden oder Hinzufügen einer Route:
+originalRoutes = [...routes]; // Kopie der Originaldaten speichern
+
+let markers = []; // Array für die Marker
+
+
+// Event-Listener für den Filter-Button
+document.getElementById('filter-button').addEventListener('click', function () {
+   
+    const startInput = document.getElementById('filter-pickup-date-start').value;
+    const endInput = document.getElementById('filter-pickup-date-end').value;
+    const zähler = 0;
+
+    console.log("Start Input:", startInput);
+    console.log("End Input:", endInput);
+
+    // Startdatum anpassen, indem ein Tag abgezogen wird
+const adjustedStartInput = (() => {
+    const date = new Date(startInput); // String in Date-Objekt umwandeln
+    date.setDate(date.getDate() - 1);  // Einen Tag abziehen
+    return date.toISOString().split('T')[0]; // Formatieren als yyyy-mm-dd
+})();
+
+const startDate = parseDate(adjustedStartInput);
+    const endDate = parseDate(endInput);
+
+    console.log("Parsed Start Date:", startDate);
+    console.log("Parsed End Date:", endDate);
+
+
+    console.log("Von:", startDate, "Bis:", endDate);
+
+    // Lösche alle vorhandenen Marker und Routen
+    clearMap();
+    console.log("Karte geleert.");
+
+    // Überprüfe, ob eines der Datumsfelder undefined ist
+    if (!startDate || !endDate) {
+        // Wenn eines oder beide Datumsfelder undefined sind, zeige alle Routen an
+        routes.forEach((route, index) => {
+            route.visible = true; // Setze die Sichtbarkeit auf true
+            addToMap(index); // Füge die Route hinzu
+            zähler++;
+            console.log("Zähler: ", zähler);
+        });
+    } else {
+        // Setze die Stunden für das Enddatum auf 23:59
+        endDate.setHours(23, 59, 59, 999);
+
+        // Iteriere über alle Routen und überprüfe die Sichtbarkeit
+        routes.forEach((route, index) => {
+            const pickupDate = new Date(route.pickupDate);
+            const dropoffDate = new Date(route.dropoffDate);
+            const isInRange = (pickupDate <= endDate && dropoffDate >= startDate);
+
+
+            // Setze den Sichtbarkeitsstatus der Route
+            route.visible = isInRange;
+            
+
+            // Gib die Route und das Ergebnis aus
+            console.log(`Route: ${route.startAddress} -> ${route.endAddress}`);
+            console.log(`Abholdatum: ${pickupDate} liegt ${isInRange ? 'innerhalb' : 'außerhalb'} des Zeitraums.`);
+
+            // Füge die Route zur Karte hinzu oder entferne sie basierend auf dem Sichtbarkeitsstatus
+            if (route.visible) {
+                addToMap(index); // Route hinzufügen
+            } else {
+                removeFromMap(index); // Route entfernen
+                console.log("Route entfernt mit else");
+            }
+        });
+    }
+
+    console.log("Aktualisierte Karte mit sichtbaren Routen.");
+});
+
+// Event-Listener für den Reset-Button
+document.getElementById('reset-button').addEventListener('click', function () {
+    console.log("Reset: Alle Filter werden zurückgesetzt.");
+    document.getElementById('filter-order-number').value = ''; // Leere das Feld für die Auftragsnummer
+   
+
+    // Zeige alle Routen wieder an
+    routes.forEach((route, index) => {
+        console.log(`Reset: Zeige Route ${index}.`);
+        addToMap(index); // Füge alle Routen zur Karte hinzu
+    });
+
+    console.log("Reset: Alle Routen wurden wieder angezeigt.");
+});
+
+
+document.getElementById('reset-date-button').addEventListener('click', function () {
+    console.log("Reset: Alle Filter werden zurückgesetzt.");
+    document.getElementById('filter-order-number').value = ''; // Leere das Feld für die Auftragsnummer
+   
+
+    // Zeige alle Routen wieder an
+    routes.forEach((route, index) => {
+        console.log(`Reset: Zeige Route ${index}.`);
+        addToMap(index); // Füge alle Routen zur Karte hinzu
+    });
+
+    console.log("Reset: Alle Routen wurden wieder angezeigt.");
+});
+
+
+// Funktion zum Hinzufügen von Routen und Markern zur Karte
+function addToMap(index) {
+    if (routeLayers[index]) {
+        console.log(`Adding route and markers for index: ${index}`);
+        if (routeLayers[index].outerLayer) routeLayers[index].outerLayer.setMap(map); // Umrandung hinzufügen
+        if (routeLayers[index].innerLayer) routeLayers[index].innerLayer.setMap(map); // Route hinzufügen
+        if (routeLayers[index].startMarker) routeLayers[index].startMarker.setMap(map); // Startmarker hinzufügen
+        if (routeLayers[index].endMarker) routeLayers[index].endMarker.setMap(map); // Endmarker hinzufügen
+    } else {
+        console.error(`routeLayers[${index}] is undefined`);
+    }
+}
+
+// Funktion zum Entfernen von Routen und Markern von der Karte
+function removeFromMap(index) {
+    if (routeLayers[index]) {
+        console.log(`Removing route and markers for index: ${index}`);
+        if (routeLayers[index]) {
+            if (routeLayers[index].routeLayer) routeLayers[index].routeLayer.setMap(null); // Route ausblenden
+            if (routeLayers[index].startMarker) routeLayers[index].startMarker.setMap(null); // Startmarker ausblenden
+            if (routeLayers[index].endMarker) routeLayers[index].endMarker.setMap(null); // Endmarker ausblenden
+        } else {
+            console.error(`routeLayers[${index}] is undefined`);
+        }
+    } else {
+        console.error(`routeLayers[${index}] is undefined`);
+    }
+    console.log("Route entfernt");
+}
+
+// Funktion zum Entfernen aller Routen und Marker von der Karte
+// Funktion zum Entfernen aller Routen und Marker von der Karte
+// Funktion zum Entfernen aller Routen und Marker von der Karte, ohne die Daten in routeLayers zu löschen
+function clearMap() {
+    routeLayers.forEach(layer => {
+        if (layer) {
+            if (layer.outerLayer) layer.outerLayer.setMap(null);  // Äußere Route entfernen
+            if (layer.innerLayer) layer.innerLayer.setMap(null);  // Innere Route entfernen
+            if (layer.startMarker) layer.startMarker.setMap(null); // Startmarker entfernen
+            if (layer.endMarker) layer.endMarker.setMap(null);     // Endmarker entfernen
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+            
+            document.querySelectorAll('.route-item input').forEach(function (input) {
+    input.addEventListener('change', function () {
+        const index = parseInt(this.id.split('-')[1]);
+        
+        if (routeLayers[index]) {
+            if (this.checked) {
+                // Route und Marker zur Karte hinzufügen
+                routeLayers[index].routeLayer.setMap(map);
+                routeLayers[index].startMarker.setMap(map);
+                routeLayers[index].endMarker.setMap(map);
+            } else {
+                // Route und Marker von der Karte entfernen
+                routeLayers[index].routeLayer.setMap(null);
+                routeLayers[index].startMarker.setMap(null);
+                routeLayers[index].endMarker.setMap(null);
+            }
+        } else {
+            console.error(`routeLayers[${index}] ist undefined`);
+        }
+    });
+});
+
+
+
+
+
+
+
+                // Excel-Upload für Routen
+document.getElementById('route-form').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(sheet);
+
+            json.forEach(route => {
+                const rawDate = route['Abholdatum'];
+                const parsedPickupDate = parseDate(rawDate);
+
+                if (!parsedPickupDate || isNaN(parsedPickupDate.getTime())) {
+                    console.warn(`Ungültiges Datum gefunden: ${rawDate}`);
+                    return;
+                }
+
+                console.log('Parsed Pickup Date:', parsedPickupDate);
+
+                // Zusammensetzen der Start- und Zieladresse
+                const startAddress = `${route['Start_Postleitzahl'] || ''} ${route['Start_Ort'] || ''} ${route['Start_Adresse'] || ''}`.trim();
+                const endAddress = `${route['Ziel_Postleitzahl'] || ''} ${route['Ziel_Ort'] || ''} ${route['Ziel_Adresse'] || ''}`.trim();
+
+                addRoute(
+        `${route['Start_Ort']} ${route['Start_Postleitzahl'] || ''}, ${route['Start_Adresse']}`,  // Startadresse
+        `${route['Ziel_Ort']} ${route['Ziel_Postleitzahl'] || ''}, ${route['Ziel_Adresse']}`,    // Zieladresse
+        {
+            id: route['ID'],
+            orderNumber: route['Auftragsnummer'],   // Hier die Auftragsnummer setzen
+            licensePlate: route['Kennzeichen'],     // Hier das Kennzeichen setzen
+            driver: route['Fahrer'],
+            car: route['Auto'],
+            pickupDate: route['Abholdatum'],
+            pickupTime: route['Abholzeit'],
+            dropoffDate: route['Rückgabedatum'],
+            dropoffTime: route['Rückgabezeit']
+                    }
+                );
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
+});
+            });
+
+        </script>
+<!-- Include the XLSX library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+<script>
+    // Define the addRouteToMap function
+    function addRouteToMap(startAddress, endAddress, color) {
+        // Implementation for adding the route to the map
+        console.log(`Adding route from ${startAddress} to ${endAddress} with color ${color}`);
+        // Add your map logic here
+    }
+</script>
+</body>

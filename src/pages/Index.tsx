@@ -4,27 +4,20 @@ import { Features } from "@/components/Features";
 import { Sections } from "@/components/Sections";
 import { Testimonials } from "@/components/Testimonials";
 import { Footer } from "@/components/Footer";
+import { ResponsiveShowcase } from "@/components/ResponsiveShowcase";
+import { MotivationSection } from "@/components/MotivationSection";
 
 const Index = () => {
   useEffect(() => {
-    const observerCallback: IntersectionObserverCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("animate-on-scroll");
-        }
-      });
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      document.documentElement.style.setProperty('--scroll', 
+        Math.min(scrolled / window.innerHeight * 100, 100).toString()
+      );
     };
 
-    const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.1,
-      rootMargin: "50px",
-    });
-
-    document.querySelectorAll(".scroll-section").forEach((section) => {
-      observer.observe(section);
-    });
-
-    return () => observer.disconnect();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
@@ -33,26 +26,18 @@ const Index = () => {
         <Hero />
       </div>
 
-      <div className="section-divider" />
-      <div className="container mx-auto px-4">
-        <h2 className="section-title">1. Features</h2>
-      </div>
+      <ResponsiveShowcase />
+
       <div className="scroll-section">
         <Features />
       </div>
 
-      <div className="section-divider" />
-      <div className="container mx-auto px-4">
-        <h2 className="section-title">2. Sections</h2>
-      </div>
       <div className="scroll-section">
         <Sections />
       </div>
 
-      <div className="section-divider" />
-      <div className="container mx-auto px-4">
-        <h2 className="section-title">3. Testimonials</h2>
-      </div>
+      <MotivationSection />
+
       <div className="scroll-section">
         <Testimonials />
       </div>

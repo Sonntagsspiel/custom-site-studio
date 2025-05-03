@@ -1,0 +1,251 @@
+.hero {
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+}
+
+.hero-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.hero-text {
+    flex: 1;
+    transform: translateY(75%);
+}
+
+.hero-image {
+    flex: 1;
+}
+
+.hero-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.subtitle-spacing {
+    margin-top: 20px;
+}
+
+.text-primary {
+    display: block;
+    margin-top: 2rem;
+    font-size: 1.5rem;
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-left {
+  animation: slideLeft 0.8s ease-out forwards;
+}
+
+.testimonial-card {
+  transition: transform 0.3s ease-out;
+}
+
+/* Stagger the animations */
+.testimonial-card:nth-child(1) { animation-delay: 0s; }
+.testimonial-card:nth-child(2) { animation-delay: 0.2s; }
+.testimonial-card:nth-child(3) { animation-delay: 0.4s; }
+.testimonial-card:nth-child(4) { animation-delay: 0.6s; }
+.testimonial-card:nth-child(5) { animation-delay: 0.8s; }
+.testimonial-card:nth-child(6) { animation-delay: 1s; }
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+@keyframes infinite-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-350px * 6)); /* Width of one card * number of original testimonials */
+  }
+}
+
+.animate-infinite-scroll {
+  animation: infinite-scroll 40s linear infinite;
+}
+
+/* Optional: Pause animation on hover */
+.animate-infinite-scroll:hover {
+  animation-play-state: paused;
+}
+
+.testimonial-track {
+  display: flex;
+  gap: 2rem;
+  animation: scroll-left 40s linear infinite;
+  width: fit-content;
+}
+
+.testimonial-slide {
+  flex: 0 0 350px;
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid rgb(229 231 235);
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Optional: Pause on hover */
+.testimonial-track:hover {
+  animation-play-state: paused;
+}
+
+.review-slide {
+  animation: slide-across 15s linear infinite;
+  right: -400px; /* Start outside the viewport */
+}
+
+@keyframes slide-across {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100vw - 400px)); /* Move completely off screen to the left */
+  }
+}
+
+/* Optional: Pause on hover */
+.review-slide:hover {
+  animation-play-state: paused;
+}
+
+.reviews-container {
+  animation: slide-reviews 30s linear infinite;
+}
+
+@keyframes slide-reviews {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Optional: Pause on hover */
+.reviews-container:hover {
+  animation-play-state: paused;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(20px);
+  }
+}
+
+.animate-float-1 { animation: float 15s infinite; }
+.animate-float-2 { animation: float 15s infinite; }
+.animate-float-3 { animation: float 15s infinite; }
+.animate-float-4 { animation: float 15s infinite; }
+.animate-float-5 { animation: float 15s infinite; }
+
+/* Scroll-basierte Opacity */
+@media (prefers-reduced-motion: no-preference) {
+  .floating-images {
+    opacity: calc(1 - (var(--scroll) / 100));
+    transition: opacity 0.3s;
+  }
+}
+
+.floating-images {
+  z-index: 10;
+}
+
+.floating-images img {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(-100vw);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100vw);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-in-right {
+  animation: slideInRight 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.floating-image {
+  --delay: calc(var(--index) * 200ms);
+  transform: 
+    translateX(var(--from-direction))
+    translateY(var(--translate-y))
+    rotate(var(--rotate));
+  opacity: var(--opacity);
+  will-change: transform, opacity;
+}
+
+.floating-image.is-visible {
+  transform: 
+    translateX(0)
+    translateY(var(--translate-y))
+    rotate(var(--rotate));
+  transition: 
+    transform 1000ms cubic-bezier(0.4, 0, 0.2, 1) var(--delay),
+    opacity 300ms ease-out;
+} 

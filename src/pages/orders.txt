@@ -1,0 +1,36 @@
+WEBSITE BESTELLUNG
+
+KONTAKTDATEN
+-----------
+Name: 
+Email: 
+Telefon: 
+
+FARBSCHEMA
+----------
+Primärfarbe: 
+Sekundärfarbe: 
+Akzentfarbe: 
+
+SCHRIFTART
+----------
+Gewählte Schriftart: 
+
+AUSGEWÄHLTE SEKTIONEN
+--------------------
+[ ] Header
+[ ] Hero Section
+[ ] Über Uns
+[ ] Services
+[ ] Portfolio
+[ ] Team
+[ ] Testimonials
+[ ] Kontakt
+[ ] Footer
+
+ZUSÄTZLICHE WÜNSCHE
+------------------
+
+
+--------------------
+Bestellt am: 

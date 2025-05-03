@@ -10,7 +10,6 @@ import About from "./pages/About";
 import Pricing from "./pages/Pricing";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
-import GetStarted from "./pages/GetStarted";
 import Customize from "./pages/Customize";
 import ExtraServices from "./pages/ExtraServices";
 import Contact from "./pages/Contact";
@@ -21,6 +20,14 @@ import WebsiteSetup from "./pages/WebsiteSetup";
 import WebsiteHosting from "./pages/WebsiteHosting";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Settings from "./pages/Settings";
+import OrderConfirmation from "./pages/OrderConfirmation";
+import OrderSaved from "@/pages/OrderSaved";
+import { AuthGuard } from "./components/AuthGuard";
+import './i18n/config';
+import NotFound from "./pages/404";
 
 const queryClient = new QueryClient();
 
@@ -38,8 +45,11 @@ const App = () => (
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          <Route path="/customize" element={<Customize />} />
+          <Route path="/customize" element={
+            <AuthGuard>
+              <Customize />
+            </AuthGuard>
+          } />
           <Route path="/extra-services" element={<ExtraServices />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/pricing/starter" element={<StarterPricing />} />
@@ -47,8 +57,18 @@ const App = () => (
           <Route path="/pricing/enterprise" element={<EnterprisePricing />} />
           <Route path="/services/website-setup" element={<WebsiteSetup />} />
           <Route path="/services/website-hosting" element={<WebsiteHosting />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={
+            <AuthGuard>
+              <Profile />
+            </AuthGuard>
+          } />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/order/saved" element={<OrderSaved />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

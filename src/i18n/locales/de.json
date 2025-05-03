@@ -1,0 +1,30 @@
+{
+  "settings": {
+    "title": "Einstellungen",
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "email": {
+        "title": "Email-Benachrichtigungen",
+        "description": "Erhalten Sie wichtige Updates zu Ihrem Konto"
+      },
+      "marketing": {
+        "title": "Marketing-Emails",
+        "description": "Erhalten Sie Newsletter und Angebote"
+      }
+    },
+    "security": {
+      "title": "Sicherheit",
+      "alerts": {
+        "title": "Sicherheitsbenachrichtigungen",
+        "description": "Erhalten Sie Benachrichtigungen über Sicherheitsvorfälle"
+      }
+    },
+    "language": {
+      "title": "Sprache",
+      "description": "Wählen Sie Ihre bevorzugte Sprache"
+    },
+    "saveButton": "Einstellungen speichern",
+    "saving": "Wird gespeichert...",
+    "tip": "Tipp: Überprüfen Sie regelmäßig Ihre Sicherheitseinstellungen, um Ihr Konto optimal zu schützen."
+  }
+} 

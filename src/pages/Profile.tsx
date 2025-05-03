@@ -1,49 +1,31 @@
 import { useState, useEffect } from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Save, Trash2 } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { uploadAvatar } from '@/lib/avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from "react-router-dom";
 
 interface SavedPreview {
   id: string;
   name: string;
   preview_url: string;
   created_at: string;
+  settings: any;
 }
 
 export default function Profile() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [savedPreviews, setSavedPreviews] = useState<SavedPreview[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadProfile();
     loadSavedPreviews();
   }, []);
-
-  async function loadProfile() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile?.avatar_url) {
-          setAvatarUrl(profile.avatar_url);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  }
 
   async function loadSavedPreviews() {
     try {
@@ -61,48 +43,6 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('Error loading saved previews:', error);
-    }
-  }
-
-  async function uploadAvatar(event: React.ChangeEvent<HTMLInputElement>) {
-    try {
-      setLoading(true);
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) throw new Error('No user found');
-
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      await supabase
-        .from('profiles')
-        .upsert({ id: user.id, avatar_url: publicUrl });
-
-      setAvatarUrl(publicUrl);
-      toast({
-        title: "Success",
-        description: "Profile picture updated successfully",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update profile picture",
-      });
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -129,41 +69,17 @@ export default function Profile() {
     }
   }
 
+  const loadSavedDesign = (preview: SavedPreview) => {
+    navigate('/customize', { 
+      state: { 
+        savedSettings: preview.settings 
+      }
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Profile Section */}
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-6">Profile</h2>
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={avatarUrl || ''} alt="Profile" />
-                <AvatarFallback>
-                  <Camera className="h-8 w-8 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-              <Label htmlFor="avatar-upload" className="absolute bottom-0 right-0 p-1 bg-primary text-white rounded-full cursor-pointer hover:bg-primary/90">
-                <Camera className="h-4 w-4" />
-                <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={uploadAvatar}
-                  disabled={loading}
-                />
-              </Label>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium">Profile Picture</h3>
-              <p className="text-sm text-muted-foreground">
-                Click the camera icon to update your profile picture
-              </p>
-            </div>
-          </div>
-        </Card>
-
         {/* Saved Previews Section */}
         <Card className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -181,7 +97,11 @@ export default function Profile() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {savedPreviews.map((preview) => (
-                <Card key={preview.id} className="overflow-hidden">
+                <Card 
+                  key={preview.id} 
+                  className="overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => loadSavedDesign(preview)}
+                >
                   <div className="aspect-video bg-neutral-100">
                     <img
                       src={preview.preview_url}
@@ -195,7 +115,10 @@ export default function Profile() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deletePreview(preview.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePreview(preview.id);
+                        }}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
